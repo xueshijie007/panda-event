@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/i18n.ts","./src/main.tsx","./src/utils.ts","./src/vite-env.d.ts","./src/api/client.ts","./src/components/chartpanel.tsx","./src/components/historyorderstable.tsx","./src/components/openorderstable.tsx","./src/components/orderpanel.tsx","./src/components/statspanel.tsx","./src/types/index.ts"],"version":"6.0.3"}
