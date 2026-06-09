@@ -401,6 +401,7 @@ function AccountAccessCard({
   password,
   registerData,
   error,
+  submitted,
   languageSwitch,
   onUsernameChange,
   onPasswordChange,
@@ -413,6 +414,7 @@ function AccountAccessCard({
   password: string;
   registerData: RegisterPayload;
   error: string | null;
+  submitted?: boolean;
   languageSwitch: ReactNode;
   onUsernameChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
@@ -473,8 +475,14 @@ function AccountAccessCard({
             <p className="form-note">QQ 号作为登录账号使用；TF UID 用于核对 VIP 开通、社区活动和返佣资格。</p>
           </>
         )}
-        {error && <p className="form-error">{error}</p>}
-        <button className="primary-action" type="submit" disabled={isRegister ? !registerReady : !loginReady}>{isRegister ? '提交注册审核' : '登录熊猫账户'}</button>
+        {error && <p className={submitted ? 'form-success' : 'form-error'}>{error}</p>}
+        <button
+          className={submitted ? 'primary-action submitted-action' : 'primary-action'}
+          type="submit"
+          disabled={submitted || (isRegister ? !registerReady : !loginReady)}
+        >
+          {isRegister ? (submitted ? '已提交审核' : '提交注册审核') : '登录熊猫账户'}
+        </button>
         <button
           className="ghost-button account-alt-action"
           type="button"
@@ -814,6 +822,7 @@ function App() {
 
   async function handleRegister(event: FormEvent) {
     event.preventDefault();
+    if (registerNotice) return;
     setError(null);
     clearAccountState();
     try {
@@ -907,6 +916,7 @@ function App() {
           password={password}
           registerData={registerData}
           error={registerNotice ?? error}
+          submitted={Boolean(registerNotice)}
           languageSwitch={languageSwitch}
           onUsernameChange={value => {
             setUsername(value);
@@ -1014,6 +1024,7 @@ function App() {
             interval={chartInterval}
             ticker={ticker}
             klines={klines}
+            openOrders={openOrders}
             loading={marketLoading}
             t={t}
             onSymbolChange={setSymbol}

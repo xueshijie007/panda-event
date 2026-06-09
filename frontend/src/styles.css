@@ -1534,3 +1534,16 @@ body {
     max-height: 460px;
   }
 }
+
+/* Registration submission state */
+.form-success {
+  margin: 0 20px 14px;
+  color: var(--green);
+  font-size: 0.9rem;
+}
+.submitted-action:disabled {
+  border: 1px solid rgba(88, 240, 168, 0.25);
+  color: var(--green);
+  background: rgba(88, 240, 168, 0.12);
+  opacity: 1;
+}

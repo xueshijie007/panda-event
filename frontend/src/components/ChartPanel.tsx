@@ -1,7 +1,7 @@
-﻿import { createChart, type CandlestickData, type IChartApi, type ISeriesApi, type UTCTimestamp } from 'lightweight-charts';
+﻿import { createChart, LineStyle, type CandlestickData, type IChartApi, type IPriceLine, type ISeriesApi, type UTCTimestamp } from 'lightweight-charts';
 import { useEffect, useRef } from 'react';
 import type { Translations } from '../i18n';
-import type { ChartInterval, Kline, SymbolName, Ticker } from '../types';
+import type { ChartInterval, ContractOrder, Kline, SymbolName, Ticker } from '../types';
 import { formatPrice } from '../utils';
 
 interface ChartPanelProps {
@@ -9,6 +9,7 @@ interface ChartPanelProps {
   interval: ChartInterval;
   ticker: Ticker | null;
   klines: Kline[];
+  openOrders: ContractOrder[];
   loading: boolean;
   t: Translations;
   onSymbolChange: (symbol: SymbolName) => void;
@@ -18,10 +19,11 @@ interface ChartPanelProps {
 const symbols: SymbolName[] = ['BTCUSDT', 'ETHUSDT'];
 const intervals: ChartInterval[] = ['1m', '3m', '5m', '10m', '15m', '1h'];
 
-export function ChartPanel({ symbol, interval, ticker, klines, loading, t, onSymbolChange, onIntervalChange }: ChartPanelProps) {
+export function ChartPanel({ symbol, interval, ticker, klines, openOrders, loading, t, onSymbolChange, onIntervalChange }: ChartPanelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const priceLineRefs = useRef<Map<number, IPriceLine>>(new Map());
   const hadDataRef = useRef(false);
   const displayTicker = ticker?.symbol === symbol ? ticker : null;
 
@@ -59,6 +61,7 @@ export function ChartPanel({ symbol, interval, ticker, klines, loading, t, onSym
 
     return () => {
       observer.disconnect();
+      priceLineRefs.current.clear();
       chart.remove();
       chartRef.current = null;
       seriesRef.current = null;
@@ -100,6 +103,34 @@ export function ChartPanel({ symbol, interval, ticker, klines, loading, t, onSym
       close: liveClose,
     });
   }, [displayTicker, klines]);
+
+  useEffect(() => {
+    if (!seriesRef.current) return;
+    const series = seriesRef.current;
+    const visibleOrders = openOrders.filter(order => order.symbol === symbol);
+    const visibleIds = new Set(visibleOrders.map(order => order.id));
+
+    for (const [orderId, line] of priceLineRefs.current) {
+      if (!visibleIds.has(orderId)) {
+        series.removePriceLine(line);
+        priceLineRefs.current.delete(orderId);
+      }
+    }
+
+    for (const order of visibleOrders) {
+      if (priceLineRefs.current.has(order.id)) continue;
+      const isCall = order.direction === 'CALL';
+      const line = series.createPriceLine({
+        price: order.entry_price,
+        color: isCall ? '#58f0a8' : '#ff5c7a',
+        lineWidth: 2,
+        lineStyle: LineStyle.Dashed,
+        axisLabelVisible: true,
+        title: `#${order.id} ${isCall ? 'UP' : 'DOWN'} ENTRY ${formatPrice(order.entry_price)}`,
+      });
+      priceLineRefs.current.set(order.id, line);
+    }
+  }, [openOrders, symbol]);
 
   const change = displayTicker?.price_change_percent ?? 0;
   const positive = change >= 0;
