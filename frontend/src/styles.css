@@ -1761,3 +1761,61 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Full-width simulator layout */
+.site-shell.simulator-shell {
+  width: min(100% - 24px, 1920px);
+  max-width: none;
+}
+.simulator-shell .app-shell {
+  width: 100%;
+  max-width: none;
+  padding-top: 18px;
+}
+.simulator-shell .main-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+  gap: 20px;
+}
+.simulator-shell .data-grid {
+  grid-template-columns: minmax(420px, 0.9fr) minmax(0, 1.35fr);
+  gap: 20px;
+}
+.simulator-shell .chart-container {
+  height: clamp(460px, 45vh, 620px);
+}
+.simulator-shell .open-orders-panel,
+.simulator-shell .history-panel {
+  min-height: clamp(520px, 44vh, 680px);
+  max-height: clamp(520px, 44vh, 680px);
+}
+@media (min-width: 1700px) {
+  .simulator-shell .main-grid {
+    grid-template-columns: minmax(0, 1fr) 440px;
+  }
+  .simulator-shell .chart-container {
+    height: 640px;
+  }
+}
+@media (max-width: 1180px) {
+  .site-shell.simulator-shell {
+    width: min(100% - 18px, 100%);
+  }
+  .simulator-shell .main-grid,
+  .simulator-shell .data-grid {
+    grid-template-columns: 1fr;
+  }
+  .simulator-shell .chart-container {
+    height: 420px;
+  }
+}
+@media (max-width: 680px) {
+  .site-shell.simulator-shell {
+    width: min(100% - 12px, 100%);
+  }
+  .simulator-shell .app-shell {
+    padding: 10px 0 0;
+  }
+  .simulator-shell .chart-container {
+    height: 360px;
+  }
+}
