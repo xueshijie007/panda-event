@@ -6,11 +6,13 @@ import { OpenOrdersTable } from './components/OpenOrdersTable';
 import { OrderPanel } from './components/OrderPanel';
 import { StatsPanel } from './components/StatsPanel';
 import { translations, type Language } from './i18n';
-import type { ChartInterval, ContractInterval, ContractOrder, ContractStats, Kline, OpenContractPayload, RegisterPayload, SymbolName, Ticker, User } from './types';
+import type { ChartInterval, ContractInterval, ContractOrder, ContractStats, Kline, OpenContractPayload, RegisterPayload, ReviewStatus, SymbolName, Ticker, User } from './types';
 import { formatMoney } from './utils';
 import './styles.css';
 
 type PageKey = 'home' | 'fund' | 'rebate' | 'weekly' | 'teaching' | 'simulator' | 'login' | 'register' | 'admin' | 'records' | 'feedback';
+
+const APP_VERSION = '2026.06.09-r3';
 
 interface NavPage {
   key: PageKey;
@@ -395,6 +397,16 @@ function RebatePage() {
   );
 }
 
+function reviewStatusLabel(status: ReviewStatus['review_status']): string {
+  const labels: Record<ReviewStatus['review_status'], string> = {
+    not_found: '未注册',
+    pending: '待审核',
+    approved: '已通过',
+    rejected: '已拒绝',
+  };
+  return labels[status];
+}
+
 function AccountAccessCard({
   mode,
   username,
@@ -402,10 +414,13 @@ function AccountAccessCard({
   registerData,
   error,
   submitted,
+  reviewStatus,
+  reviewChecking,
   languageSwitch,
   onUsernameChange,
   onPasswordChange,
   onRegisterDataChange,
+  onReviewStatusCheck,
   onSubmit,
   onNavigate,
 }: {
@@ -415,10 +430,13 @@ function AccountAccessCard({
   registerData: RegisterPayload;
   error: string | null;
   submitted?: boolean;
+  reviewStatus?: ReviewStatus | null;
+  reviewChecking?: boolean;
   languageSwitch: ReactNode;
   onUsernameChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onRegisterDataChange: (payload: RegisterPayload) => void;
+  onReviewStatusCheck?: () => Promise<void>;
   onSubmit: (event: FormEvent) => Promise<void>;
   onNavigate: (page: PageKey) => void;
 }) {
@@ -473,7 +491,41 @@ function AccountAccessCard({
               />
             </label>
             <p className="form-note">QQ 号作为登录账号使用；TF UID 用于核对 VIP 开通、社区活动和返佣资格。</p>
+            {submitted && (
+              <div className="submitted-review-card">
+                <p className="eyebrow">Review Submitted</p>
+                <h2>已提交审核</h2>
+                <dl>
+                  <div><dt>QQ号</dt><dd>{username.trim()}</dd></div>
+                  <div><dt>TF UID</dt><dd>{registerData.exchange_uid.trim()}</dd></div>
+                  <div><dt>当前状态</dt><dd>待审核</dd></div>
+                </dl>
+                <p>请等待管理员通过。审核通过后，使用 QQ 号和密码登录模拟盘。</p>
+              </div>
+            )}
           </>
+        )}
+        {!isRegister && (
+          <div className="review-query">
+            <button className="ghost-button" type="button" disabled={!username.trim() || reviewChecking} onClick={onReviewStatusCheck}>
+              {reviewChecking ? '查询中...' : '查询审核状态'}
+            </button>
+            {reviewStatus && (
+              <div className={`review-status-card ${reviewStatus.review_status}`}>
+                <span>QQ {reviewStatus.username}</span>
+                <strong>{reviewStatusLabel(reviewStatus.review_status)}</strong>
+                <p>
+                  {reviewStatus.review_status === 'pending'
+                    ? '申请已提交，请等待管理员审核通过。'
+                    : reviewStatus.review_status === 'approved'
+                      ? 'VIP 权限已开通，可以登录模拟盘。'
+                      : reviewStatus.review_status === 'rejected'
+                        ? '申请已拒绝，请联系管理员核对 QQ 或 TF UID。'
+                        : '没有找到注册申请，请先开通 VIP。'}
+                </p>
+              </div>
+            )}
+          </div>
         )}
         {error && <p className={submitted ? 'form-success' : 'form-error'}>{error}</p>}
         <button
@@ -654,6 +706,10 @@ function SimulatorGate({ onNavigate }: { onNavigate: (page: PageKey) => void }) 
   );
 }
 
+function SiteFooter() {
+  return <footer className="site-footer">熊猫事件合约社区 · 专注事件合约教学 · 仅供学习交流 · 版本 {APP_VERSION}</footer>;
+}
+
 function App() {
   const [currentPage, setCurrentPage] = useState<PageKey>(getPageFromLocation);
   const [language, setLanguage] = useState<Language>(getInitialLanguage);
@@ -682,6 +738,8 @@ function App() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [registerNotice, setRegisterNotice] = useState<string | null>(null);
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus | null>(null);
+  const [reviewChecking, setReviewChecking] = useState(false);
   const [settlementNotice, setSettlementNotice] = useState<ContractOrder | null>(null);
   const accountLoadedRef = useRef(false);
   const openOrderIdsRef = useRef<Set<number>>(new Set());
@@ -835,9 +893,30 @@ function App() {
         exchange_uid: registerData.exchange_uid.trim(),
       });
       setRegisterNotice(`VIP 开通申请已提交，QQ ${nextUser.username} 正在等待管理员审核。审核通过后即可登录模拟盘。`);
+      setReviewStatus({
+        username: nextUser.username,
+        review_status: 'pending',
+        exchange_uid: nextUser.exchange_uid,
+        reviewed_at: null,
+      });
     } catch (err) {
       localStorage.removeItem('sim_user_id');
       setError(err instanceof Error ? err.message : '注册失败');
+    }
+  }
+
+  async function handleCheckReviewStatus() {
+    const qq = username.trim();
+    if (!qq) return;
+    setError(null);
+    setReviewChecking(true);
+    try {
+      const nextStatus = await api.getReviewStatus(qq);
+      setReviewStatus(nextStatus);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '审核状态查询失败');
+    } finally {
+      setReviewChecking(false);
     }
   }
 
@@ -917,9 +996,13 @@ function App() {
           registerData={registerData}
           error={registerNotice ?? error}
           submitted={Boolean(registerNotice)}
+          reviewStatus={reviewStatus}
+          reviewChecking={reviewChecking}
           languageSwitch={languageSwitch}
           onUsernameChange={value => {
             setUsername(value);
+            setRegisterNotice(null);
+            setReviewStatus(null);
             setRegisterData({ ...registerData, username: value, contact_type: 'qq', contact_account: value });
           }}
           onPasswordChange={value => {
@@ -927,10 +1010,11 @@ function App() {
             setRegisterData({ ...registerData, password: value });
           }}
           onRegisterDataChange={setRegisterData}
+          onReviewStatusCheck={handleCheckReviewStatus}
           onSubmit={handleRegister}
           onNavigate={navigate}
         />
-        <footer className="site-footer">熊猫事件合约社区 · 专注事件合约教学 · 仅供学习交流</footer>
+        <SiteFooter />
       </main>
     );
   }
@@ -945,14 +1029,20 @@ function App() {
           password={password}
           registerData={registerData}
           error={error}
+          reviewStatus={reviewStatus}
+          reviewChecking={reviewChecking}
           languageSwitch={languageSwitch}
-          onUsernameChange={setUsername}
+          onUsernameChange={value => {
+            setUsername(value);
+            setReviewStatus(null);
+          }}
           onPasswordChange={setPassword}
           onRegisterDataChange={setRegisterData}
+          onReviewStatusCheck={handleCheckReviewStatus}
           onSubmit={handleLogin}
           onNavigate={navigate}
         />
-        <footer className="site-footer">熊猫事件合约社区 · 专注事件合约教学 · 仅供学习交流</footer>
+        <SiteFooter />
       </main>
     );
   }
@@ -962,7 +1052,7 @@ function App() {
       <main className="site-shell">
         <SiteNav currentPage={currentPage} onNavigate={navigate} user={user} isAdmin={Boolean(adminToken)} onAdminLogout={adminLogout} />
         {marketingPage}
-        <footer className="site-footer">熊猫事件合约社区 · 专注事件合约教学 · 仅供学习交流</footer>
+        <SiteFooter />
       </main>
     );
   }
@@ -972,6 +1062,7 @@ function App() {
       <main className="site-shell simulator-shell">
         <SiteNav currentPage={currentPage} onNavigate={navigate} user={user} isAdmin={Boolean(adminToken)} onAdminLogout={adminLogout} />
         <SimulatorGate onNavigate={navigate} />
+        <SiteFooter />
       </main>
     );
   }
@@ -1051,8 +1142,10 @@ function App() {
           <HistoryOrdersTable orders={historyOrders} loading={accountLoading} language={language} t={t} />
         </div>
       </section>
+      <SiteFooter />
     </main>
   );
 }
 
 export default App;
+

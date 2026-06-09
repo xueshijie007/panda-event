@@ -126,7 +126,7 @@ export function ChartPanel({ symbol, interval, ticker, klines, openOrders, loadi
         lineWidth: 2,
         lineStyle: LineStyle.Dashed,
         axisLabelVisible: true,
-        title: `#${order.id} ${isCall ? 'UP' : 'DOWN'} ENTRY ${formatPrice(order.entry_price)}`,
+        title: `#${order.id} ${isCall ? '涨' : '跌'} 开仓价 ${formatPrice(order.entry_price)}`,
       });
       priceLineRefs.current.set(order.id, line);
     }

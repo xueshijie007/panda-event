@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User
-from app.schemas import UserLoginRequest, UserOut, UserRegisterRequest
+from app.schemas import UserLoginRequest, UserOut, UserRegisterRequest, UserReviewStatusOut
 from app.security import hash_password, verify_password
 
 router = APIRouter()
@@ -58,6 +58,22 @@ def register(payload: UserRegisterRequest, db: Session = Depends(get_db)) -> Use
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="could not create user") from exc
     db.refresh(user)
     return user
+
+
+@router.get("/review-status", response_model=UserReviewStatusOut)
+def get_review_status(username: str, db: Session = Depends(get_db)) -> dict[str, str | None]:
+    username = username.strip()
+    if not username:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="QQ number is required")
+    user = db.scalar(select(User).where(User.username == username))
+    if not user:
+        return {"username": username, "review_status": "not_found", "exchange_uid": None, "reviewed_at": None}
+    return {
+        "username": user.username,
+        "review_status": user.review_status,
+        "exchange_uid": user.exchange_uid,
+        "reviewed_at": user.reviewed_at,
+    }
 
 
 @router.get("/me", response_model=UserOut)

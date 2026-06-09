@@ -1,4 +1,4 @@
-﻿import type { ChartInterval, ContractOrder, ContractStats, Kline, OpenContractPayload, RegisterPayload, SymbolName, Ticker, User } from '../types';
+﻿import type { ChartInterval, ContractOrder, ContractStats, Kline, OpenContractPayload, RegisterPayload, ReviewStatus, SymbolName, Ticker, User } from '../types';
 
 const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/$/, '');
 const API_BASE_URL = configuredApiBaseUrl ?? '';
@@ -60,6 +60,9 @@ export const api = {
       body: JSON.stringify(payload),
     });
   },
+  getReviewStatus(username: string) {
+    return request<ReviewStatus>(`/api/users/review-status?username=${encodeURIComponent(username)}`);
+  },
   adminLogin(username: string, password: string) {
     return request<{ token: string }>('/api/admin/login', {
       method: 'POST',
@@ -112,6 +115,7 @@ export const api = {
     return request<{ settled: number }>('/api/contracts/settle/manual', { method: 'POST' });
   },
 };
+
 
 
 

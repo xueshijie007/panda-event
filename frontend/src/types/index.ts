@@ -17,6 +17,13 @@ export interface User {
   reviewed_at: string | null;
 }
 
+export interface ReviewStatus {
+  username: string;
+  review_status: 'not_found' | 'pending' | 'approved' | 'rejected';
+  exchange_uid: string | null;
+  reviewed_at: string | null;
+}
+
 export interface Kline {
   time: number;
   open: number;

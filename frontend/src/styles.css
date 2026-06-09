@@ -1547,3 +1547,86 @@ body {
   background: rgba(88, 240, 168, 0.12);
   opacity: 1;
 }
+
+/* Review status and audit cards */
+.submitted-review-card,
+.review-status-card {
+  margin: 10px 20px 14px;
+  border: 1px solid rgba(88, 240, 168, 0.28);
+  border-radius: 18px;
+  background: rgba(88, 240, 168, 0.08);
+  padding: 16px;
+}
+.submitted-review-card h2 {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+}
+.submitted-review-card dl {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.submitted-review-card dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+.submitted-review-card dt,
+.review-status-card span {
+  color: var(--muted);
+}
+.submitted-review-card dd {
+  margin: 0;
+  font-weight: 900;
+}
+.submitted-review-card p,
+.review-status-card p {
+  margin: 8px 0 0;
+  color: #d8e0dc;
+  line-height: 1.55;
+}
+.review-query {
+  display: grid;
+  gap: 12px;
+  padding: 0 20px 12px;
+}
+.review-query .ghost-button {
+  width: 100%;
+}
+.review-status-card {
+  margin: 0;
+}
+.review-status-card strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.2rem;
+}
+.review-status-card.not_found {
+  border-color: rgba(141, 155, 176, 0.28);
+  background: rgba(141, 155, 176, 0.08);
+}
+.review-status-card.pending {
+  border-color: rgba(244, 199, 101, 0.34);
+  background: rgba(244, 199, 101, 0.08);
+}
+.review-status-card.approved {
+  border-color: rgba(88, 240, 168, 0.34);
+  background: rgba(88, 240, 168, 0.08);
+}
+.review-status-card.rejected {
+  border-color: rgba(255, 92, 122, 0.34);
+  background: rgba(255, 92, 122, 0.08);
+}
+.reason-cell {
+  min-width: 220px;
+  white-space: normal;
+  line-height: 1.45;
+}
+.site-footer {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  color: var(--muted);
+}

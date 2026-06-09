@@ -53,6 +53,13 @@ class UserOut(BaseModel):
     reviewed_at: datetime | None = None
 
 
+class UserReviewStatusOut(BaseModel):
+    username: str
+    review_status: Literal["not_found", "pending", "approved", "rejected"]
+    exchange_uid: str | None = None
+    reviewed_at: datetime | None = None
+
+
 class AdminLoginRequest(BaseModel):
     username: str = Field(min_length=1, max_length=64)
     password: str = Field(min_length=1, max_length=128)
