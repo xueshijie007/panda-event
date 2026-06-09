@@ -1,4 +1,4 @@
-﻿import { createChart, LineStyle, type CandlestickData, type IChartApi, type IPriceLine, type ISeriesApi, type UTCTimestamp } from 'lightweight-charts';
+﻿import { createChart, LineStyle, TickMarkType, type CandlestickData, type IChartApi, type IPriceLine, type ISeriesApi, type Time, type UTCTimestamp } from 'lightweight-charts';
 import { useEffect, useRef } from 'react';
 import type { Translations } from '../i18n';
 import type { ChartInterval, ContractOrder, Kline, SymbolName, Ticker } from '../types';
@@ -18,6 +18,43 @@ interface ChartPanelProps {
 
 const symbols: SymbolName[] = ['BTCUSDT', 'ETHUSDT'];
 const intervals: ChartInterval[] = ['1m', '3m', '5m', '10m', '15m', '1h'];
+const chartTimeZone = 'Asia/Shanghai';
+
+function timeToDate(time: Time): Date {
+  if (typeof time === 'number') return new Date(time * 1000);
+  if (typeof time === 'string') return new Date(time);
+  return new Date(Date.UTC(time.year, time.month - 1, time.day));
+}
+
+function formatChartTick(time: Time, tickMarkType: TickMarkType): string {
+  const date = timeToDate(time);
+  if (tickMarkType === TickMarkType.Time || tickMarkType === TickMarkType.TimeWithSeconds) {
+    return new Intl.DateTimeFormat('zh-CN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: chartTimeZone,
+    }).format(date);
+  }
+  return new Intl.DateTimeFormat('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: chartTimeZone,
+  }).format(date);
+}
+
+function formatChartCrosshairTime(time: Time): string {
+  return new Intl.DateTimeFormat('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: chartTimeZone,
+  }).format(timeToDate(time));
+}
 
 export function ChartPanel({ symbol, interval, ticker, klines, openOrders, loading, t, onSymbolChange, onIntervalChange }: ChartPanelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -41,7 +78,16 @@ export function ChartPanel({ symbol, interval, ticker, klines, openOrders, loadi
         horzLines: { color: 'rgba(142, 157, 179, 0.08)' },
       },
       rightPriceScale: { borderColor: 'rgba(142, 157, 179, 0.2)' },
-      timeScale: { borderColor: 'rgba(142, 157, 179, 0.2)', timeVisible: true },
+      localization: {
+        locale: 'zh-CN',
+        timeFormatter: formatChartCrosshairTime,
+      },
+      timeScale: {
+        borderColor: 'rgba(142, 157, 179, 0.2)',
+        timeVisible: true,
+        secondsVisible: false,
+        tickMarkFormatter: formatChartTick,
+      },
     });
     chartRef.current = chart;
     seriesRef.current = chart.addCandlestickSeries({
@@ -173,3 +219,4 @@ export function ChartPanel({ symbol, interval, ticker, klines, openOrders, loadi
     </section>
   );
 }
+

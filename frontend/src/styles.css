@@ -1819,3 +1819,42 @@ body {
     height: 360px;
   }
 }
+
+/* Larger chart emphasis */
+.simulator-shell .main-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+}
+.simulator-shell .chart-panel {
+  min-height: 720px;
+}
+.simulator-shell .chart-container {
+  height: clamp(560px, 58vh, 760px);
+}
+.simulator-shell .order-panel {
+  max-width: 360px;
+  justify-self: stretch;
+}
+@media (min-width: 1700px) {
+  .simulator-shell .main-grid {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+  .simulator-shell .chart-container {
+    height: 780px;
+  }
+}
+@media (max-width: 1180px) {
+  .simulator-shell .chart-panel {
+    min-height: auto;
+  }
+  .simulator-shell .chart-container {
+    height: 520px;
+  }
+  .simulator-shell .order-panel {
+    max-width: none;
+  }
+}
+@media (max-width: 680px) {
+  .simulator-shell .chart-container {
+    height: 420px;
+  }
+}
