@@ -1858,3 +1858,26 @@ body {
     height: 420px;
   }
 }
+
+/* Reduce excessive empty space under the chart */
+.simulator-shell .chart-panel {
+  min-height: auto;
+}
+.simulator-shell .chart-container {
+  height: clamp(500px, 50vh, 660px);
+}
+@media (min-width: 1700px) {
+  .simulator-shell .chart-container {
+    height: 680px;
+  }
+}
+@media (max-width: 1180px) {
+  .simulator-shell .chart-container {
+    height: 480px;
+  }
+}
+@media (max-width: 680px) {
+  .simulator-shell .chart-container {
+    height: 380px;
+  }
+}
