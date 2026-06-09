@@ -1881,3 +1881,70 @@ body {
     height: 380px;
   }
 }
+
+/* Chart frame redesign: remove the heavy bottom block feeling */
+.simulator-shell .chart-panel {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(16, 22, 28, 0.92), rgba(8, 11, 14, 0.88));
+}
+.simulator-shell .chart-panel .market-head {
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid rgba(244, 240, 230, 0.08);
+}
+.simulator-shell .chart-panel .switch-row {
+  margin: 0 18px;
+  padding: 10px 0 0;
+}
+.simulator-shell .chart-panel .interval-row {
+  margin-bottom: 12px;
+  padding-bottom: 0;
+}
+.simulator-shell .chart-wrap {
+  position: relative;
+  margin: 0 14px 14px;
+  border: 1px solid rgba(244, 240, 230, 0.1);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 100%, rgba(88, 240, 168, 0.035), transparent 35%),
+    #10151f;
+  overflow: hidden;
+}
+.simulator-shell .chart-container {
+  height: clamp(520px, 54vh, 700px);
+}
+.simulator-shell .chart-wrap::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: rgba(88, 240, 168, 0.18);
+  pointer-events: none;
+}
+@media (min-width: 1700px) {
+  .simulator-shell .chart-container {
+    height: 720px;
+  }
+}
+@media (max-width: 1180px) {
+  .simulator-shell .chart-container {
+    height: 500px;
+  }
+}
+@media (max-width: 680px) {
+  .simulator-shell .chart-panel .switch-row {
+    margin: 0 12px;
+  }
+  .simulator-shell .chart-wrap {
+    margin: 0 10px 10px;
+    border-radius: 14px;
+  }
+  .simulator-shell .chart-container {
+    height: 390px;
+  }
+}
