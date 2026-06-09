@@ -1630,3 +1630,134 @@ body {
   gap: 8px;
   color: var(--muted);
 }
+
+/* Order panels redesign */
+.open-orders-panel {
+  min-height: 440px;
+  max-height: 440px;
+}
+.history-panel {
+  min-height: 560px;
+  max-height: 560px;
+}
+.open-order-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 12px 14px 18px;
+}
+.open-order-card {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(244, 240, 230, 0.045);
+  padding: 14px;
+}
+.open-order-card.call {
+  border-color: rgba(88, 240, 168, 0.3);
+  box-shadow: inset 3px 0 0 rgba(88, 240, 168, 0.75);
+}
+.open-order-card.put {
+  border-color: rgba(255, 92, 122, 0.3);
+  box-shadow: inset 3px 0 0 rgba(255, 92, 122, 0.75);
+}
+.open-order-top,
+.open-order-meta,
+.open-order-expiry,
+.open-order-prices div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.open-order-top strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 1.08rem;
+}
+.open-order-meta {
+  margin-top: 12px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.16);
+  padding: 10px;
+  color: #d8e0dc;
+  font-weight: 800;
+}
+.open-order-prices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0;
+}
+.open-order-prices div {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.12);
+}
+.open-order-prices dt,
+.open-order-expiry span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.open-order-prices dd {
+  margin: 0;
+  font-weight: 950;
+}
+.floating-state {
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+}
+.floating-state.winning {
+  color: var(--green);
+  background: rgba(88, 240, 168, 0.12);
+}
+.floating-state.losing {
+  color: var(--red);
+  background: rgba(255, 92, 122, 0.12);
+}
+.floating-state.draw {
+  color: var(--gold);
+  background: rgba(244, 199, 101, 0.12);
+}
+.open-order-expiry {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.empty-card {
+  display: grid;
+  min-height: 260px;
+  place-items: center;
+  color: var(--muted);
+}
+.history-filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 14px 10px;
+}
+.history-table {
+  min-width: 980px;
+}
+.result-pill {
+  display: inline-flex;
+  min-width: 86px;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+@media (max-width: 680px) {
+  .open-orders-panel,
+  .history-panel {
+    min-height: 500px;
+    max-height: 500px;
+  }
+  .open-order-prices {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1138,7 +1138,7 @@ function App() {
 
         <StatsPanel stats={stats} t={t} />
         <div className="data-grid">
-          <OpenOrdersTable orders={openOrders} loading={accountLoading} language={language} t={t} />
+          <OpenOrdersTable orders={openOrders} loading={accountLoading} language={language} ticker={ticker} t={t} />
           <HistoryOrdersTable orders={historyOrders} loading={accountLoading} language={language} t={t} />
         </div>
       </section>
