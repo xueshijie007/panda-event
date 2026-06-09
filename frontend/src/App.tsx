@@ -185,16 +185,18 @@ function SiteNav({
   user,
   isAdmin,
   onAdminLogout,
+  simulatorAccountControls,
 }: {
   currentPage: PageKey;
   onNavigate: (page: PageKey) => void;
   user?: User | null;
   isAdmin?: boolean;
   onAdminLogout?: () => void;
+  simulatorAccountControls?: ReactNode;
 }) {
   const visiblePages = navPages.filter(page => page.key !== 'admin' && page.key !== 'register' && page.key !== 'login');
   return (
-    <header className="site-header">
+    <header className={simulatorAccountControls ? 'site-header simulator-site-header' : 'site-header'}>
       <button className="brand-mark" type="button" onClick={() => onNavigate('home')}>
         <span>PD</span>
         <strong>熊猫事件社区</strong>
@@ -213,7 +215,9 @@ function SiteNav({
         ))}
       </nav>
       <div className="site-account">
-        {isAdmin ? (
+        {simulatorAccountControls ? (
+          simulatorAccountControls
+        ) : isAdmin ? (
           <>
             <button className="account-button" type="button" onClick={() => onNavigate('admin')}>管理后台</button>
             <button className="account-link" type="button" onClick={onAdminLogout}>退出</button>
@@ -970,6 +974,17 @@ function App() {
     </div>
   );
 
+  const simulatorAccountControls = user ? (
+    <div className="user-strip nav-user-strip">
+      {languageSwitch}
+      <span>{user.username}</span>
+      <span className="vip-badge">VIP权限</span>
+      <strong>{formatMoney(Number(user.balance))} USDT</strong>
+      <button className="ghost-button reset-button" onClick={handleResetAccount}>重置资产</button>
+      <button className="ghost-button" onClick={logout}>{t.logout}</button>
+    </div>
+  ) : null;
+
   const marketingPage = useMemo(() => {
     if (currentPage === 'home') return <HomePage onNavigate={navigate} />;
     if (currentPage === 'rebate') return <RebatePage />;
@@ -1070,19 +1085,15 @@ function App() {
 
   return (
     <main className="site-shell simulator-shell">
-      <SiteNav currentPage={currentPage} onNavigate={navigate} user={user} isAdmin={Boolean(adminToken)} onAdminLogout={adminLogout} />
+      <SiteNav
+        currentPage={currentPage}
+        onNavigate={navigate}
+        user={user}
+        isAdmin={Boolean(adminToken)}
+        onAdminLogout={adminLogout}
+        simulatorAccountControls={simulatorAccountControls}
+      />
       <section className="app-shell">
-        <nav className="top-nav simulator-account-nav">
-          <div className="user-strip">
-            {languageSwitch}
-            <span>{user.username}</span>
-            <span className="vip-badge">VIP权限</span>
-            <strong>{formatMoney(Number(user.balance))} USDT</strong>
-            <button className="ghost-button reset-button" onClick={handleResetAccount}>重置资产</button>
-            <button className="ghost-button" onClick={logout}>{t.logout}</button>
-          </div>
-        </nav>
-
         {error && <div className="error-banner"><span>{error}</span><button onClick={() => setError(null)}>{t.dismiss}</button></div>}
         {settlementNotice && (
           <div className="settlement-modal-backdrop" role="dialog" aria-modal="true">

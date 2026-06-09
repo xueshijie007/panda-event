@@ -2051,3 +2051,74 @@ body {
     gap: 8px;
   }
 }
+
+/* Nav-integrated simulator account and taller order panel */
+.site-header:has(.nav-user-strip) {
+  align-items: center;
+}
+.nav-user-strip {
+  border-radius: 16px;
+  padding: 8px 10px;
+  gap: 8px;
+  background: rgba(244, 240, 230, 0.055);
+}
+.nav-user-strip .language-switch .chip {
+  padding: 6px 8px;
+}
+.nav-user-strip .ghost-button {
+  padding: 7px 9px;
+}
+.simulator-shell .app-shell {
+  padding-top: 10px;
+}
+.simulator-shell .order-panel {
+  display: flex;
+  min-height: 100%;
+  max-width: none;
+  flex-direction: column;
+  padding-bottom: 18px;
+}
+.simulator-shell .order-panel .panel-head {
+  padding: 20px 20px 14px;
+}
+.simulator-shell .order-panel .field {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+.simulator-shell .order-summary {
+  margin-top: 16px;
+  margin-bottom: 18px;
+  padding: 18px;
+}
+.simulator-shell .instant-order-grid {
+  margin-top: auto;
+  padding-top: 8px;
+}
+.simulator-shell .instant-order {
+  min-height: 128px;
+}
+.simulator-shell .instant-order span {
+  font-size: 2.2rem;
+}
+.simulator-shell .instant-order strong {
+  font-size: 0.92rem;
+}
+.simulator-shell .amount-row {
+  padding-top: 4px;
+  padding-bottom: 12px;
+}
+@media (max-width: 1180px) {
+  .nav-user-strip {
+    flex-wrap: wrap;
+    border-radius: 18px;
+  }
+  .simulator-shell .order-panel {
+    min-height: auto;
+  }
+  .simulator-shell .instant-order {
+    min-height: 104px;
+  }
+}
+.simulator-site-header {
+  align-items: center;
+}
