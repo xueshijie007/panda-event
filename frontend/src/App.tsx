@@ -198,6 +198,7 @@ function SiteNav({
       <button className="brand-mark" type="button" onClick={() => onNavigate('home')}>
         <span>PD</span>
         <strong>熊猫事件社区</strong>
+        {currentPage === 'simulator' && <em>加密货币事件合约模拟器</em>}
       </button>
       <nav className="site-nav" aria-label="主导航">
         {visiblePages.map(page => (
@@ -1071,11 +1072,7 @@ function App() {
     <main className="site-shell simulator-shell">
       <SiteNav currentPage={currentPage} onNavigate={navigate} user={user} isAdmin={Boolean(adminToken)} onAdminLogout={adminLogout} />
       <section className="app-shell">
-        <nav className="top-nav">
-          <div>
-            <p className="eyebrow">{t.mvp}</p>
-            <h1>{t.appName}</h1>
-          </div>
+        <nav className="top-nav simulator-account-nav">
           <div className="user-strip">
             {languageSwitch}
             <span>{user.username}</span>
@@ -1090,14 +1087,14 @@ function App() {
         {settlementNotice && (
           <div className="settlement-modal-backdrop" role="dialog" aria-modal="true">
             <div className="settlement-modal">
-              <p className="eyebrow">Order Settled</p>
-              <h2>{settlementNotice.status === 'WON' ? '胜单已结算' : settlementNotice.status === 'LOST' ? '负单已结算' : '订单已结算'}</h2>
+              <p className="eyebrow">Settlement</p>
+              <h2>{settlementNotice.status === 'WON' ? '这单拿下了' : settlementNotice.status === 'LOST' ? '这单没走出来' : '这单打平了'}</h2>
               <p>
                 {settlementNotice.status === 'WON'
-                  ? '胜单可以进群交流胜单心得，复盘入场理由和周期选择。'
+                  ? '可以把这单的入场点和周期选择发到群里交流一下，好的交易逻辑值得复盘沉淀。'
                   : settlementNotice.status === 'LOST'
-                    ? '负单可以进群学习带单老师教学中，先复盘再继续下单。'
-                    : '本单已完成结算，可以进群交流复盘。'}
+                    ? '先别急着追下一单。建议进群看下老师复盘，确认这次是方向、位置还是周期没处理好。'
+                    : '价格刚好走平，资金已按规则处理。可以继续观察下一根 K 线再决定。'}
               </p>
               <dl>
                 <div><dt>订单</dt><dd>#{settlementNotice.id}</dd></div>
@@ -1136,11 +1133,11 @@ function App() {
           />
         </div>
 
-        <StatsPanel stats={stats} t={t} />
         <div className="data-grid">
           <OpenOrdersTable orders={openOrders} loading={accountLoading} language={language} ticker={ticker} t={t} />
           <HistoryOrdersTable orders={historyOrders} loading={accountLoading} language={language} t={t} />
         </div>
+        <StatsPanel stats={stats} t={t} />
       </section>
       <SiteFooter />
     </main>

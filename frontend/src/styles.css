@@ -1948,3 +1948,106 @@ body {
     height: 390px;
   }
 }
+
+/* Simulator layout polish: compact header, inline price, tighter records */
+.brand-mark em {
+  margin-left: 4px;
+  border-left: 1px solid rgba(244, 240, 230, 0.2);
+  padding-left: 12px;
+  color: var(--gold);
+  font-size: 0.92rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+.simulator-shell .app-shell {
+  padding-top: 8px;
+}
+.simulator-account-nav {
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+.simulator-account-nav .user-strip {
+  margin-left: auto;
+}
+.simulator-shell .main-grid {
+  gap: 14px;
+}
+.simulator-shell .data-grid {
+  margin-top: 12px;
+}
+.simulator-shell .stats-grid {
+  margin-top: 14px;
+}
+.simulator-shell .chart-panel .market-head {
+  align-items: flex-start;
+  padding: 14px 18px 8px;
+}
+.market-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.market-title > span {
+  font-size: clamp(1.4rem, 2vw, 2rem);
+}
+.market-title > strong {
+  color: var(--text);
+  font-size: clamp(1.45rem, 2.4vw, 2.25rem);
+  letter-spacing: -0.055em;
+}
+.market-title > small {
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+.market-title .live-tick {
+  align-self: center;
+}
+.simulator-shell .chart-panel .switch-row {
+  margin: 0 14px;
+  padding-top: 7px;
+}
+.simulator-shell .chart-panel .interval-row {
+  margin-bottom: 8px;
+}
+.simulator-shell .chart-wrap {
+  margin: 0 10px 10px;
+  border-bottom-color: rgba(88, 240, 168, 0.2);
+}
+.simulator-shell .chart-wrap::after {
+  display: none;
+}
+.simulator-shell .chart-container {
+  height: clamp(500px, 52vh, 680px);
+}
+.simulator-shell .settlement-modal h2 {
+  font-size: 2.25rem;
+}
+.simulator-shell .settlement-modal p:not(.eyebrow) {
+  font-size: 1rem;
+}
+@media (max-width: 900px) {
+  .brand-mark em {
+    display: block;
+    margin-left: 0;
+    border-left: none;
+    padding-left: 0;
+    font-size: 0.82rem;
+  }
+  .simulator-account-nav,
+  .simulator-account-nav .user-strip {
+    align-items: flex-start;
+    justify-content: flex-start;
+    margin-left: 0;
+    width: 100%;
+  }
+}
+@media (max-width: 680px) {
+  .simulator-shell .chart-container {
+    height: 370px;
+  }
+  .market-title {
+    gap: 8px;
+  }
+}

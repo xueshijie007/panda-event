@@ -186,13 +186,12 @@ export function ChartPanel({ symbol, interval, ticker, klines, openOrders, loadi
       <div className="panel-head market-head">
         <div>
           <p className="eyebrow">{t.market}</p>
-          <h2>{symbol}</h2>
-        </div>
-        <div className="price-card">
-          <span className="muted">{t.lastPrice}</span>
-          <strong>{displayTicker ? formatPrice(displayTicker.price) : '--'}</strong>
-          <small className={positive ? 'positive' : 'negative'}>{positive ? '+' : ''}{change.toFixed(2)}%</small>
-          <em className="live-tick">LIVE</em>
+          <h2 className="market-title">
+            <span>{symbol}</span>
+            <strong>{displayTicker ? formatPrice(displayTicker.price) : '--'}</strong>
+            <small className={positive ? 'positive' : 'negative'}>{positive ? '+' : ''}{change.toFixed(2)}%</small>
+            <em className="live-tick">LIVE</em>
+          </h2>
         </div>
       </div>
 
