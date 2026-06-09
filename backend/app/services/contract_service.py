@@ -12,8 +12,15 @@ from app.schemas import OpenContractRequest
 from app.services.market_service import SUPPORTED_INTERVALS, market_data_adapter
 
 MIN_STAKE = Decimal("1")
-MAX_OPEN_ORDERS = 10
-DEFAULT_PAYOUT_RATIO = Decimal("0.8")
+MAX_OPEN_ORDERS = 50
+PAYOUT_RATIOS = {
+    "1m": Decimal("0.60"),
+    "3m": Decimal("0.64"),
+    "5m": Decimal("0.67"),
+    "10m": Decimal("0.70"),
+    "15m": Decimal("0.72"),
+    "1h": Decimal("0.75"),
+}
 MONEY_QUANT = Decimal("0.00000001")
 DEFAULT_VIRTUAL_BALANCE = Decimal("10000.00")
 
@@ -31,6 +38,9 @@ def get_user_or_404(db: Session, user_id: int) -> User:
 
 def open_contract(db: Session, user_id: int, payload: OpenContractRequest) -> EventContractOrder:
     user = get_user_or_404(db, user_id)
+    if user.review_status != "approved":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="VIP access is not approved yet")
+
     stake = quantize_money(payload.stake_amount)
     if stake < MIN_STAKE:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="minimum stake is 1 USDT")
@@ -42,11 +52,12 @@ def open_contract(db: Session, user_id: int, payload: OpenContractRequest) -> Ev
         )
     )
     if open_count >= MAX_OPEN_ORDERS:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="maximum 10 open contracts allowed")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="maximum 50 open contracts allowed")
 
     if Decimal(user.balance) < stake:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="insufficient virtual balance")
 
+    payout_ratio = PAYOUT_RATIOS[payload.interval]
     entry_price = market_data_adapter.get_price_decimal(payload.symbol)
     now = datetime.now(timezone.utc)
     expiry_time = now + timedelta(seconds=SUPPORTED_INTERVALS[payload.interval])
@@ -61,7 +72,7 @@ def open_contract(db: Session, user_id: int, payload: OpenContractRequest) -> Ev
         direction=payload.direction,
         stake_amount=stake,
         entry_price=entry_price,
-        payout_ratio=DEFAULT_PAYOUT_RATIO,
+        payout_ratio=payout_ratio,
         status=OrderStatus.OPEN.value,
         expiry_time=expiry_time,
         profit_loss=Decimal("0"),

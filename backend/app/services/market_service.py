@@ -70,8 +70,8 @@ class MarketDataAdapter:
             source_limit = min(1000, limit * (SUPPORTED_INTERVALS[interval] // 60) + 5)
             one_minute = self._fetch_binance_klines(symbol, "1m", source_limit)
             return self._aggregate_klines(one_minute, SUPPORTED_INTERVALS[interval], limit)
-        except Exception:
-            return self._mock_klines(symbol, interval, limit)
+        except Exception as exc:
+            raise MarketDataError("failed to fetch realtime exchange klines") from exc
 
     def get_ticker(self, symbol: str) -> dict[str, float | str]:
         _validate_symbol_interval(symbol)
@@ -91,12 +91,8 @@ class MarketDataAdapter:
                     "price": float(data["lastPrice"]),
                     "price_change_percent": float(data["priceChangePercent"]),
                 }
-        except Exception:
-            klines = self._mock_klines(symbol, "5m", 288)
-            first = float(klines[0]["close"])
-            last = float(klines[-1]["close"])
-            change = ((last - first) / first) * 100 if first else 0.0
-            return {"symbol": symbol, "price": last, "price_change_percent": change}
+        except Exception as exc:
+            raise MarketDataError("failed to fetch realtime exchange ticker") from exc
 
     def get_price_decimal(self, symbol: str) -> Decimal:
         ticker = self.get_ticker(symbol)

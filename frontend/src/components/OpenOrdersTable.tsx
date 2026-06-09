@@ -47,7 +47,7 @@ export function OpenOrdersTable({ orders, loading, language, t }: OpenOrdersTabl
                 <td>#{order.id}</td>
                 <td>{order.symbol}</td>
                 <td>{order.interval}</td>
-                <td><span className={order.direction === 'CALL' ? 'badge call-badge' : 'badge put-badge'}>{order.direction}</span></td>
+                <td><span className={order.direction === 'CALL' ? 'badge call-badge' : 'badge put-badge'}>{order.direction === 'CALL' ? '涨' : '跌'}</span></td>
                 <td>{formatMoney(order.stake_amount)}</td>
                 <td>{formatPrice(order.entry_price)}</td>
                 <td>{formatDateTime(order.expiry_time, language)}</td>

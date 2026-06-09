@@ -32,6 +32,9 @@ def login(payload: UserLoginRequest, db: Session = Depends(get_db)) -> User:
 def register(payload: UserRegisterRequest, db: Session = Depends(get_db)) -> User:
     username = payload.username.strip()
     exchange_uid = payload.exchange_uid.strip()
+    if payload.contact_type != "qq" or payload.contact_account.strip() != username:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="QQ number must be used as the account")
+
     uid_owner = db.scalar(select(User).where(User.exchange_uid == exchange_uid, User.username != username))
     if uid_owner:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="exchange UID is already registered")
@@ -42,8 +45,8 @@ def register(payload: UserRegisterRequest, db: Session = Depends(get_db)) -> Use
         db.add(user)
 
     user.password_hash = hash_password(payload.password)
-    user.contact_type = payload.contact_type
-    user.contact_account = payload.contact_account.strip()
+    user.contact_type = "qq"
+    user.contact_account = username
     user.exchange_uid = exchange_uid
     user.review_status = "pending"
     user.reviewed_at = None
@@ -62,4 +65,6 @@ def get_me(user_id: int, db: Session = Depends(get_db)) -> User:
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+    if user.review_status != "approved":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="VIP access is not approved yet")
     return user

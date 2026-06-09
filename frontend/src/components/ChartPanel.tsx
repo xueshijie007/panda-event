@@ -23,6 +23,7 @@ export function ChartPanel({ symbol, interval, ticker, klines, loading, t, onSym
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const hadDataRef = useRef(false);
+  const displayTicker = ticker?.symbol === symbol ? ticker : null;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -87,7 +88,20 @@ export function ChartPanel({ symbol, interval, ticker, klines, loading, t, onSym
     }
   }, [klines]);
 
-  const change = ticker?.price_change_percent ?? 0;
+  useEffect(() => {
+    if (!seriesRef.current || !displayTicker || klines.length === 0) return;
+    const last = klines[klines.length - 1];
+    const liveClose = displayTicker.price;
+    seriesRef.current.update({
+      time: last.time as UTCTimestamp,
+      open: last.open,
+      high: Math.max(last.high, liveClose),
+      low: Math.min(last.low, liveClose),
+      close: liveClose,
+    });
+  }, [displayTicker, klines]);
+
+  const change = displayTicker?.price_change_percent ?? 0;
   const positive = change >= 0;
 
   return (
@@ -99,8 +113,9 @@ export function ChartPanel({ symbol, interval, ticker, klines, loading, t, onSym
         </div>
         <div className="price-card">
           <span className="muted">{t.lastPrice}</span>
-          <strong>{ticker ? formatPrice(ticker.price) : '--'}</strong>
+          <strong>{displayTicker ? formatPrice(displayTicker.price) : '--'}</strong>
           <small className={positive ? 'positive' : 'negative'}>{positive ? '+' : ''}{change.toFixed(2)}%</small>
+          <em className="live-tick">LIVE</em>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Language, Translations } from '../i18n';
 import type { ContractInterval, Direction, OpenContractPayload, SymbolName } from '../types';
 import { formatDateTime, intervalToMs } from '../utils';
@@ -14,11 +14,18 @@ interface OrderPanelProps {
   onSubmit: (payload: OpenContractPayload) => Promise<void>;
 }
 
-const intervals: ContractInterval[] = ['3m', '5m', '10m', '15m', '1h'];
+const intervals: ContractInterval[] = ['1m', '3m', '5m', '10m', '15m', '1h'];
 const quickAmounts = [10, 50, 100];
+const payoutRatios: Record<ContractInterval, number> = {
+  '1m': 60,
+  '3m': 64,
+  '5m': 67,
+  '10m': 70,
+  '15m': 72,
+  '1h': 75,
+};
 
 export function OrderPanel({ symbol, interval, balance, submitting, language, t, onIntervalChange, onSubmit }: OrderPanelProps) {
-  const [direction, setDirection] = useState<Direction>('CALL');
   const [stake, setStake] = useState('10');
   const [now, setNow] = useState(Date.now());
 
@@ -31,7 +38,7 @@ export function OrderPanel({ symbol, interval, balance, submitting, language, t,
   const stakeNumber = Number(stake);
   const invalidStake = !Number.isFinite(stakeNumber) || stakeNumber < 1 || stakeNumber > balance;
 
-  async function submit() {
+  async function submit(direction: Direction) {
     if (invalidStake || submitting) return;
     await onSubmit({ symbol, interval, direction, stake_amount: stake });
   }
@@ -44,18 +51,6 @@ export function OrderPanel({ symbol, interval, balance, submitting, language, t,
           <h2>{t.openPosition}</h2>
         </div>
       </div>
-
-      <label className="field">
-        <span>{t.direction}</span>
-        <div className="direction-grid">
-          <button className={direction === 'CALL' ? 'direction call active' : 'direction call'} onClick={() => setDirection('CALL')}>
-            {t.callUp}
-          </button>
-          <button className={direction === 'PUT' ? 'direction put active' : 'direction put'} onClick={() => setDirection('PUT')}>
-            {t.putDown}
-          </button>
-        </div>
-      </label>
 
       <label className="field">
         <span>{t.settlementCycle}</span>
@@ -77,14 +72,20 @@ export function OrderPanel({ symbol, interval, balance, submitting, language, t,
       <div className="order-summary">
         <div><span>{t.symbol}</span><strong>{symbol}</strong></div>
         <div><span>{t.expiry}</span><strong>{formatDateTime(expiry, language)}</strong></div>
-        <div><span>{t.payout}</span><strong>80%</strong></div>
+        <div><span>{t.payout}</span><strong>{payoutRatios[interval]}%</strong></div>
       </div>
 
       {invalidStake && <p className="form-error">{t.invalidStake}</p>}
-      <button className="primary-action" disabled={invalidStake || submitting} onClick={submit}>
-        {submitting ? t.submitting : t.confirmOrder}
-      </button>
+      <div className="instant-order-grid">
+        <button className="instant-order call" disabled={invalidStake || submitting} onClick={() => submit('CALL')}>
+          <span>{submitting ? t.submitting : t.callUp}</span>
+          <strong>{t.confirmOrder}</strong>
+        </button>
+        <button className="instant-order put" disabled={invalidStake || submitting} onClick={() => submit('PUT')}>
+          <span>{submitting ? t.submitting : t.putDown}</span>
+          <strong>{t.confirmOrder}</strong>
+        </button>
+      </div>
     </section>
   );
 }
-

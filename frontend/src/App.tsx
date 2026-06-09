@@ -423,7 +423,6 @@ function AccountAccessCard({
   const isRegister = mode === 'register';
   const registerReady = username.trim()
     && password.trim().length >= 6
-    && registerData.contact_account.trim()
     && registerData.exchange_uid.trim();
   const loginReady = username.trim() && password.trim().length >= 6;
   return (
@@ -433,18 +432,18 @@ function AccountAccessCard({
           <p className="eyebrow">{isRegister ? 'Create Account' : 'Account Login'}</p>
           {languageSwitch}
         </div>
-        <h1>{isRegister ? '注册熊猫账户' : '登录熊猫账户'}</h1>
+        <h1>{isRegister ? 'VIP 开通注册' : '登录模拟盘'}</h1>
         <p className="muted">
           {isRegister
-            ? '创建熊猫社区账户并绑定联系方式、交易所 UID。新账户默认获得 10,000 虚拟 USDT，仅用于模拟练习。'
-            : '登录后回到首页，你可以继续查看返佣、教学、活动，或进入事件模拟盘练习。'}
+            ? 'QQ 号将作为登录账号。提交 TF UID 后等待管理员审核，通过后开通 VIP 模拟盘权限。'
+            : '使用 QQ 号和密码登录，审核通过的 VIP 用户才能进入事件模拟盘。'}
         </p>
         <label className="field">
-          <span>账户</span>
-          <input value={username} onChange={event => onUsernameChange(event.target.value)} minLength={1} maxLength={64} placeholder="请输入账户" />
+          <span>QQ号</span>
+          <input value={username} onChange={event => onUsernameChange(event.target.value)} minLength={1} maxLength={64} placeholder="请输入QQ号" />
         </label>
         <label className="field">
-          <span>密码</span>
+          <span>登录密码</span>
           <input
             value={password}
             onChange={event => onPasswordChange(event.target.value)}
@@ -456,37 +455,22 @@ function AccountAccessCard({
         </label>
         {isRegister && (
           <>
+            <div className="invite-alert">
+              <span>TF 邀请码</span>
+              <strong>请使用熊猫社区专属邀请码开户注册</strong>
+              <p>没有 TF UID 的用户，请先通过开户链接完成注册，再回来填写 UID 提交审核。</p>
+            </div>
             <label className="field">
-              <span>联系方式类型</span>
-              <select
-                value={registerData.contact_type}
-                onChange={event => onRegisterDataChange({ ...registerData, contact_type: event.target.value as RegisterPayload['contact_type'] })}
-              >
-                <option value="wechat">微信</option>
-                <option value="qq">QQ</option>
-              </select>
-            </label>
-            <label className="field">
-              <span>{registerData.contact_type === 'wechat' ? '微信号' : 'QQ号'}</span>
-              <input
-                value={registerData.contact_account}
-                onChange={event => onRegisterDataChange({ ...registerData, contact_account: event.target.value })}
-                minLength={2}
-                maxLength={128}
-                placeholder={registerData.contact_type === 'wechat' ? '请输入微信号' : '请输入QQ号'}
-              />
-            </label>
-            <label className="field">
-              <span>熊猫社区旗下注册的交易所账号 UID</span>
+              <span>TF UID</span>
               <input
                 value={registerData.exchange_uid}
                 onChange={event => onRegisterDataChange({ ...registerData, exchange_uid: event.target.value })}
                 minLength={2}
                 maxLength={128}
-                placeholder="请输入交易所 UID"
+                placeholder="请输入 TF UID"
               />
             </label>
-            <p className="form-note">UID 用于核对社区活动和返佣资格；请填写通过熊猫社区链接注册的交易所账户 UID。</p>
+            <p className="form-note">QQ 号作为登录账号使用；TF UID 用于核对 VIP 开通、社区活动和返佣资格。</p>
           </>
         )}
         {error && <p className="form-error">{error}</p>}
@@ -494,17 +478,18 @@ function AccountAccessCard({
         <button
           className="ghost-button account-alt-action"
           type="button"
-          onClick={() => onNavigate(isRegister ? 'simulator' : 'register')}
+          onClick={() => onNavigate(isRegister ? 'login' : 'register')}
         >
-          {isRegister ? '已有账户，去登录' : '没有账户，去注册'}
+          {isRegister ? '已有 VIP，去登录' : '没有 VIP，去开通'}
         </button>
       </form>
       {isRegister && (
         <aside className="register-side">
           <p className="eyebrow">What You Get</p>
-          <h2>注册后可直接练习</h2>
+          <h2>审核通过后开通 VIP 权限</h2>
           <ul>
             <li>10,000 虚拟 USDT 初始余额</li>
+            <li>登录账号统一使用 QQ 号</li>
             <li>BTCUSDT / ETHUSDT 模拟事件合约</li>
             <li>未结算订单、历史订单和胜率统计</li>
             <li>无真实充值、提现或真实交易风险</li>
@@ -571,7 +556,7 @@ function AdminPage({ onLogout }: { onLogout: () => void }) {
         <form className="login-card" onSubmit={handleAdminLogin}>
           <p className="eyebrow">Admin</p>
           <h1>管理员后台</h1>
-          <p className="muted">默认后台账户：admin / PandaAdmin123。正式使用建议通过环境变量修改。</p>
+          <p className="muted">请使用服务器环境变量配置的管理员账户登录后台。</p>
           <label className="field"><span>管理员账户</span><input value={adminName} onChange={event => setAdminName(event.target.value)} /></label>
           <label className="field"><span>管理员密码</span><input type="password" value={adminPassword} onChange={event => setAdminPassword(event.target.value)} /></label>
           {adminError && <p className="form-error">{adminError}</p>}
@@ -587,7 +572,7 @@ function AdminPage({ onLogout }: { onLogout: () => void }) {
         <div>
           <p className="eyebrow">Admin Review</p>
           <h1>用户注册审核</h1>
-          <p className="muted">这里可以查看用户提交的微信/QQ、交易所 UID，并决定是否允许登录模拟盘。</p>
+          <p className="muted">这里可以查看用户提交的 QQ 号和 TF UID，并决定是否开通 VIP 模拟盘权限。</p>
         </div>
         <div className="admin-actions">
           <select value={statusFilter} onChange={event => {
@@ -613,9 +598,9 @@ function AdminPage({ onLogout }: { onLogout: () => void }) {
         <table>
           <thead>
             <tr>
-              <th>账户</th>
+              <th>QQ账号</th>
               <th>联系方式</th>
-              <th>交易所 UID</th>
+              <th>TF UID</th>
               <th>状态</th>
               <th>注册时间</th>
               <th>操作</th>
@@ -626,7 +611,7 @@ function AdminPage({ onLogout }: { onLogout: () => void }) {
             {users.map(item => (
               <tr key={item.id}>
                 <td>{item.username}</td>
-                <td>{item.contact_type === 'wechat' ? '微信' : 'QQ'} · {item.contact_account}</td>
+                <td>QQ · {item.contact_account}</td>
                 <td>{item.exchange_uid}</td>
                 <td><span className={`review-badge ${item.review_status}`}>{item.review_status}</span></td>
                 <td>{new Date(item.created_at).toLocaleString()}</td>
@@ -650,11 +635,11 @@ function SimulatorGate({ onNavigate }: { onNavigate: (page: PageKey) => void }) 
     <section className="simulator-gate">
       <div>
         <p className="eyebrow">Simulator Access</p>
-        <h1>请先登录熊猫账户</h1>
-        <p>事件模拟盘需要登录后使用。注册申请通过审核后，即可使用 10,000 虚拟 USDT 练习 BTC/ETH 事件合约。</p>
+        <h1>请先登录 VIP 账户</h1>
+        <p>事件模拟盘需要登录后使用。使用 QQ 号注册并提交 TF UID，管理员审核通过后即可开通 VIP 权限。</p>
         <div className="hero-actions">
-          <button className="primary-action hero-button" type="button" onClick={() => onNavigate('login')}>登录账户</button>
-          <button className="ghost-button hero-ghost" type="button" onClick={() => onNavigate('register')}>注册账户</button>
+          <button className="primary-action hero-button" type="button" onClick={() => onNavigate('login')}>登录 VIP</button>
+          <button className="ghost-button hero-ghost" type="button" onClick={() => onNavigate('register')}>开通 VIP</button>
         </div>
       </div>
     </section>
@@ -672,7 +657,7 @@ function App() {
   const [registerData, setRegisterData] = useState<RegisterPayload>({
     username: '',
     password: '',
-    contact_type: 'wechat',
+    contact_type: 'qq',
     contact_account: '',
     exchange_uid: '',
   });
@@ -689,7 +674,10 @@ function App() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [registerNotice, setRegisterNotice] = useState<string | null>(null);
+  const [settlementNotice, setSettlementNotice] = useState<ContractOrder | null>(null);
   const accountLoadedRef = useRef(false);
+  const openOrderIdsRef = useRef<Set<number>>(new Set());
+  const marketRequestIdRef = useRef(0);
 
   function navigate(page: PageKey) {
     const path = getPathForPage(page);
@@ -712,18 +700,25 @@ function App() {
   }
 
   const loadMarket = useCallback(async () => {
+    const requestId = marketRequestIdRef.current + 1;
+    marketRequestIdRef.current = requestId;
+    const requestedSymbol = symbol;
     setMarketLoading(true);
     try {
       const [nextKlines, nextTicker] = await Promise.all([
-        api.getKlines(symbol, chartInterval, 200),
-        api.getTicker(symbol),
+        api.getKlines(requestedSymbol, chartInterval, 200),
+        api.getTicker(requestedSymbol),
       ]);
+      if (marketRequestIdRef.current !== requestId || nextTicker.symbol !== requestedSymbol) return;
       setKlines(nextKlines);
       setTicker(nextTicker);
     } catch (err) {
+      if (marketRequestIdRef.current !== requestId) return;
       setError(err instanceof Error ? err.message : translations[language].failedMarket);
     } finally {
-      setMarketLoading(false);
+      if (marketRequestIdRef.current === requestId) {
+        setMarketLoading(false);
+      }
     }
   }, [symbol, chartInterval, language]);
 
@@ -743,10 +738,17 @@ function App() {
         api.getHistory(userId),
         api.getStats(userId),
       ]);
+      if (accountLoadedRef.current) {
+        const newlySettled = nextHistory.find(order => openOrderIdsRef.current.has(order.id));
+        if (newlySettled) {
+          setSettlementNotice(newlySettled);
+        }
+      }
       setUser(nextUser);
       setOpenOrders(nextOpen);
       setHistoryOrders(nextHistory);
       setStats(nextStats);
+      openOrderIdsRef.current = new Set(nextOpen.map(order => order.id));
       accountLoadedRef.current = true;
     } catch (err) {
       setError(err instanceof Error ? err.message : translations[language].failedAccount);
@@ -760,6 +762,7 @@ function App() {
     setOpenOrders([]);
     setHistoryOrders([]);
     setStats(null);
+    openOrderIdsRef.current = new Set();
     accountLoadedRef.current = false;
   }
 
@@ -774,7 +777,7 @@ function App() {
   useEffect(() => {
     if (currentPage !== 'simulator') return;
     loadMarket();
-    const timer = window.setInterval(loadMarket, 10_000);
+    const timer = window.setInterval(loadMarket, 2_500);
     return () => window.clearInterval(timer);
   }, [currentPage, loadMarket]);
 
@@ -794,7 +797,7 @@ function App() {
       localStorage.setItem('sim_user_id', String(nextUser.id));
       setUser(nextUser);
       await loadAccount(nextUser.id);
-      navigate('home');
+      navigate('simulator');
     } catch (err) {
       localStorage.removeItem('sim_user_id');
       try {
@@ -818,10 +821,11 @@ function App() {
         ...registerData,
         username: username.trim(),
         password,
-        contact_account: registerData.contact_account.trim(),
+        contact_type: 'qq',
+        contact_account: username.trim(),
         exchange_uid: registerData.exchange_uid.trim(),
       });
-      setRegisterNotice(`注册申请已提交，账户 ${nextUser.username} 正在等待管理员审核。审核通过后即可登录模拟盘。`);
+      setRegisterNotice(`VIP 开通申请已提交，QQ ${nextUser.username} 正在等待管理员审核。审核通过后即可登录模拟盘。`);
     } catch (err) {
       localStorage.removeItem('sim_user_id');
       setError(err instanceof Error ? err.message : '注册失败');
@@ -906,7 +910,7 @@ function App() {
           languageSwitch={languageSwitch}
           onUsernameChange={value => {
             setUsername(value);
-            setRegisterData({ ...registerData, username: value });
+            setRegisterData({ ...registerData, username: value, contact_type: 'qq', contact_account: value });
           }}
           onPasswordChange={value => {
             setPassword(value);
@@ -974,6 +978,7 @@ function App() {
           <div className="user-strip">
             {languageSwitch}
             <span>{user.username}</span>
+            <span className="vip-badge">VIP权限</span>
             <strong>{formatMoney(Number(user.balance))} USDT</strong>
             <button className="ghost-button reset-button" onClick={handleResetAccount}>重置资产</button>
             <button className="ghost-button" onClick={logout}>{t.logout}</button>
@@ -981,6 +986,27 @@ function App() {
         </nav>
 
         {error && <div className="error-banner"><span>{error}</span><button onClick={() => setError(null)}>{t.dismiss}</button></div>}
+        {settlementNotice && (
+          <div className="settlement-modal-backdrop" role="dialog" aria-modal="true">
+            <div className="settlement-modal">
+              <p className="eyebrow">Order Settled</p>
+              <h2>{settlementNotice.status === 'WON' ? '胜单已结算' : settlementNotice.status === 'LOST' ? '负单已结算' : '订单已结算'}</h2>
+              <p>
+                {settlementNotice.status === 'WON'
+                  ? '胜单可以进群交流胜单心得，复盘入场理由和周期选择。'
+                  : settlementNotice.status === 'LOST'
+                    ? '负单可以进群学习带单老师教学中，先复盘再继续下单。'
+                    : '本单已完成结算，可以进群交流复盘。'}
+              </p>
+              <dl>
+                <div><dt>订单</dt><dd>#{settlementNotice.id}</dd></div>
+                <div><dt>方向</dt><dd>{settlementNotice.direction === 'CALL' ? '涨' : '跌'}</dd></div>
+                <div><dt>盈亏</dt><dd className={settlementNotice.profit_loss >= 0 ? 'positive' : 'negative'}>{formatMoney(settlementNotice.profit_loss)} USDT</dd></div>
+              </dl>
+              <button className="primary-action" type="button" onClick={() => setSettlementNotice(null)}>知道了</button>
+            </div>
+          </div>
+        )}
 
         <div className="main-grid">
           <ChartPanel
@@ -993,9 +1019,7 @@ function App() {
             onSymbolChange={setSymbol}
             onIntervalChange={(next) => {
               setChartInterval(next);
-              if (next !== '1m') {
-                setOrderInterval(next);
-              }
+              setOrderInterval(next);
             }}
           />
           <OrderPanel

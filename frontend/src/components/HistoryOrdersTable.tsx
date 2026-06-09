@@ -39,7 +39,7 @@ export function HistoryOrdersTable({ orders, loading, language, t }: HistoryOrde
               <tr key={order.id}>
                 <td>#{order.id}</td>
                 <td>{order.symbol}</td>
-                <td>{order.direction}</td>
+                <td>{order.direction === 'CALL' ? '涨' : '跌'}</td>
                 <td>{formatMoney(order.stake_amount)}</td>
                 <td>{formatPrice(order.entry_price)}</td>
                 <td>{order.close_price ? formatPrice(order.close_price) : '--'}</td>
