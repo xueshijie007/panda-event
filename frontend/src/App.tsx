@@ -558,6 +558,7 @@ function AccountAccessCard({
             <li>BTCUSDT / ETHUSDT 模拟事件合约</li>
             <li>未结算订单、历史订单和胜率统计</li>
             <li>无真实充值、提现或真实交易风险</li>
+            <li>联系小助理 QQ 2821305247 可协助快速审核</li>
           </ul>
         </aside>
       )}
