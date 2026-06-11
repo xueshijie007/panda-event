@@ -20,9 +20,10 @@ SUPPORTED_INTERVALS: dict[str, int] = {
 }
 
 BINANCE_BASE_URL = "https://api.binance.com"
+BINANCE_FUTURES_BASE_URL = "https://fapi.binance.com"
 BYBIT_BASE_URL = "https://api.bybit.com"
 OKX_BASE_URL = "https://www.okx.com"
-SYMBOL_MARKET_ALIASES = {"XAUUSD": "PAXGUSDT"}
+SYMBOL_MARKET_ALIASES = {"XAUUSD": "XAUUSDT"}
 NATIVE_BINANCE_INTERVALS = {"1m", "3m", "5m", "15m", "1h"}
 NATIVE_BYBIT_INTERVALS = {"1m", "3m", "5m", "15m", "1h"}
 NATIVE_OKX_INTERVALS = {"1m", "3m", "5m", "15m", "1h"}
@@ -60,6 +61,10 @@ def _binance_kline_to_dict(row: list[Any]) -> dict[str, float | int]:
 
 def _okx_symbol(symbol: str) -> str:
     return symbol.replace("USDT", "-USDT")
+
+
+def _okx_swap_symbol(symbol: str) -> str:
+    return f"{_okx_symbol(symbol)}-SWAP"
 
 
 def _okx_kline_to_dict(row: list[Any]) -> dict[str, float | int]:
@@ -135,29 +140,29 @@ class MarketDataAdapter:
     def _fetch_xau_exchange_ticker(self, exchange_symbol: str) -> dict[str, float | str]:
         errors: list[str] = []
         for name, fetcher in [
-            ("okx", self._fetch_okx_ticker),
-            ("binance", self._fetch_binance_ticker),
-            ("bybit", self._fetch_bybit_ticker),
+            ("binance_futures", self._fetch_binance_futures_ticker),
+            ("okx_swap", self._fetch_okx_swap_ticker),
+            ("bybit_linear", self._fetch_bybit_linear_ticker),
         ]:
             try:
                 ticker = fetcher(exchange_symbol)
                 return {**ticker, "symbol": "XAUUSD"}
             except Exception as exc:
                 errors.append(f"{name}: {exc}")
-        raise MarketDataError(f"failed to fetch realtime xau ticker from PAXGUSDT ({'; '.join(errors)})")
+        raise MarketDataError(f"failed to fetch realtime xau ticker from XAUUSDT contracts ({'; '.join(errors)})")
 
     def _fetch_xau_exchange_klines(self, exchange_symbol: str, interval: str, limit: int) -> list[dict[str, float | int]]:
         if interval == "10m":
             fetchers = [
-                ("okx", self._fetch_okx_aggregated_klines),
-                ("binance", self._fetch_binance_aggregated_klines),
-                ("bybit", self._fetch_bybit_aggregated_klines),
+                ("binance_futures", self._fetch_binance_futures_aggregated_klines),
+                ("okx_swap", self._fetch_okx_swap_aggregated_klines),
+                ("bybit_linear", self._fetch_bybit_linear_aggregated_klines),
             ]
         else:
             fetchers = [
-                ("okx", self._fetch_okx_klines),
-                ("binance", self._fetch_binance_klines),
-                ("bybit", self._fetch_bybit_klines),
+                ("binance_futures", self._fetch_binance_futures_klines),
+                ("okx_swap", self._fetch_okx_swap_klines),
+                ("bybit_linear", self._fetch_bybit_linear_klines),
             ]
         errors: list[str] = []
         for name, fetcher in fetchers:
@@ -165,7 +170,7 @@ class MarketDataAdapter:
                 return fetcher(exchange_symbol, interval, limit)
             except Exception as exc:
                 errors.append(f"{name}: {exc}")
-        raise MarketDataError(f"failed to fetch realtime xau klines from PAXGUSDT ({'; '.join(errors)})")
+        raise MarketDataError(f"failed to fetch realtime xau klines from XAUUSDT contracts ({'; '.join(errors)})")
 
     def get_price_decimal(self, symbol: str) -> Decimal:
         ticker = self.get_ticker(symbol)
@@ -221,6 +226,43 @@ class MarketDataAdapter:
         change = ((last - open_24h) / open_24h) * 100 if open_24h else 0.0
         return {"symbol": symbol, "price": last, "price_change_percent": change}
 
+    def _fetch_binance_futures_ticker(self, symbol: str) -> dict[str, float | str]:
+        with httpx.Client(timeout=HTTP_TIMEOUT_SECONDS) as client:
+            response = client.get(f"{BINANCE_FUTURES_BASE_URL}/fapi/v1/ticker/24hr", params={"symbol": symbol})
+            response.raise_for_status()
+            data = response.json()
+        return {
+            "symbol": symbol,
+            "price": float(data["lastPrice"]),
+            "price_change_percent": float(data["priceChangePercent"]),
+        }
+
+    def _fetch_bybit_linear_ticker(self, symbol: str) -> dict[str, float | str]:
+        with httpx.Client(timeout=HTTP_TIMEOUT_SECONDS) as client:
+            response = client.get(
+                f"{BYBIT_BASE_URL}/v5/market/tickers",
+                params={"category": "linear", "symbol": symbol},
+            )
+            response.raise_for_status()
+            data = response.json()
+        row = data["result"]["list"][0]
+        return {
+            "symbol": symbol,
+            "price": float(row["lastPrice"]),
+            "price_change_percent": float(row["price24hPcnt"]) * 100,
+        }
+
+    def _fetch_okx_swap_ticker(self, symbol: str) -> dict[str, float | str]:
+        with httpx.Client(timeout=HTTP_TIMEOUT_SECONDS) as client:
+            response = client.get(f"{OKX_BASE_URL}/api/v5/market/ticker", params={"instId": _okx_swap_symbol(symbol)})
+            response.raise_for_status()
+            data = response.json()
+        row = data["data"][0]
+        last = float(row["last"])
+        open_24h = float(row["open24h"])
+        change = ((last - open_24h) / open_24h) * 100 if open_24h else 0.0
+        return {"symbol": symbol, "price": last, "price_change_percent": change}
+
     def _fetch_binance_klines(self, symbol: str, interval: str, limit: int) -> list[dict[str, float | int]]:
         if interval not in NATIVE_BINANCE_INTERVALS:
             raise MarketDataError(f"binance unsupported interval: {interval}")
@@ -257,6 +299,42 @@ class MarketDataAdapter:
             rows = response.json()["data"]
         return sorted((_okx_kline_to_dict(row) for row in rows), key=lambda item: int(item["time"]))
 
+    def _fetch_binance_futures_klines(self, symbol: str, interval: str, limit: int) -> list[dict[str, float | int]]:
+        if interval not in NATIVE_BINANCE_INTERVALS:
+            raise MarketDataError(f"binance futures unsupported interval: {interval}")
+        with httpx.Client(timeout=HTTP_TIMEOUT_SECONDS) as client:
+            response = client.get(
+                f"{BINANCE_FUTURES_BASE_URL}/fapi/v1/klines",
+                params={"symbol": symbol, "interval": interval, "limit": limit},
+            )
+            response.raise_for_status()
+            rows = response.json()
+        return [_binance_kline_to_dict(row) for row in rows]
+
+    def _fetch_bybit_linear_klines(self, symbol: str, interval: str, limit: int) -> list[dict[str, float | int]]:
+        if interval not in NATIVE_BYBIT_INTERVALS:
+            raise MarketDataError(f"bybit linear unsupported interval: {interval}")
+        with httpx.Client(timeout=HTTP_TIMEOUT_SECONDS) as client:
+            response = client.get(
+                f"{BYBIT_BASE_URL}/v5/market/kline",
+                params={"category": "linear", "symbol": symbol, "interval": BYBIT_INTERVAL_MAP[interval], "limit": limit},
+            )
+            response.raise_for_status()
+            rows = response.json()["result"]["list"]
+        return sorted((_bybit_kline_to_dict(row) for row in rows), key=lambda item: int(item["time"]))
+
+    def _fetch_okx_swap_klines(self, symbol: str, interval: str, limit: int) -> list[dict[str, float | int]]:
+        if interval not in NATIVE_OKX_INTERVALS:
+            raise MarketDataError(f"okx swap unsupported interval: {interval}")
+        with httpx.Client(timeout=HTTP_TIMEOUT_SECONDS) as client:
+            response = client.get(
+                f"{OKX_BASE_URL}/api/v5/market/candles",
+                params={"instId": _okx_swap_symbol(symbol), "bar": OKX_INTERVAL_MAP[interval], "limit": min(limit, 300)},
+            )
+            response.raise_for_status()
+            rows = response.json()["data"]
+        return sorted((_okx_kline_to_dict(row) for row in rows), key=lambda item: int(item["time"]))
+
     def _fetch_binance_aggregated_klines(self, symbol: str, interval: str, limit: int) -> list[dict[str, float | int]]:
         source_limit = min(1000, limit * (SUPPORTED_INTERVALS[interval] // 60) + 5)
         one_minute = self._fetch_binance_klines(symbol, "1m", source_limit)
@@ -270,6 +348,21 @@ class MarketDataAdapter:
     def _fetch_okx_aggregated_klines(self, symbol: str, interval: str, limit: int) -> list[dict[str, float | int]]:
         source_limit = min(300, limit * (SUPPORTED_INTERVALS[interval] // 60) + 5)
         one_minute = self._fetch_okx_klines(symbol, "1m", source_limit)
+        return self._aggregate_klines(one_minute, SUPPORTED_INTERVALS[interval], limit)
+
+    def _fetch_binance_futures_aggregated_klines(self, symbol: str, interval: str, limit: int) -> list[dict[str, float | int]]:
+        source_limit = min(1000, limit * (SUPPORTED_INTERVALS[interval] // 60) + 5)
+        one_minute = self._fetch_binance_futures_klines(symbol, "1m", source_limit)
+        return self._aggregate_klines(one_minute, SUPPORTED_INTERVALS[interval], limit)
+
+    def _fetch_bybit_linear_aggregated_klines(self, symbol: str, interval: str, limit: int) -> list[dict[str, float | int]]:
+        source_limit = min(1000, limit * (SUPPORTED_INTERVALS[interval] // 60) + 5)
+        one_minute = self._fetch_bybit_linear_klines(symbol, "1m", source_limit)
+        return self._aggregate_klines(one_minute, SUPPORTED_INTERVALS[interval], limit)
+
+    def _fetch_okx_swap_aggregated_klines(self, symbol: str, interval: str, limit: int) -> list[dict[str, float | int]]:
+        source_limit = min(300, limit * (SUPPORTED_INTERVALS[interval] // 60) + 5)
+        one_minute = self._fetch_okx_swap_klines(symbol, "1m", source_limit)
         return self._aggregate_klines(one_minute, SUPPORTED_INTERVALS[interval], limit)
 
     def _aggregate_klines(
