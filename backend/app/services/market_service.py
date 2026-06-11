@@ -22,21 +22,13 @@ SUPPORTED_INTERVALS: dict[str, int] = {
 BINANCE_BASE_URL = "https://api.binance.com"
 BYBIT_BASE_URL = "https://api.bybit.com"
 OKX_BASE_URL = "https://www.okx.com"
-YAHOO_CHART_BASE_URL = "https://query1.finance.yahoo.com/v8/finance/chart"
-XAU_YAHOO_SYMBOL = "GC=F"
+SYMBOL_MARKET_ALIASES = {"XAUUSD": "PAXGUSDT"}
 NATIVE_BINANCE_INTERVALS = {"1m", "3m", "5m", "15m", "1h"}
 NATIVE_BYBIT_INTERVALS = {"1m", "3m", "5m", "15m", "1h"}
 NATIVE_OKX_INTERVALS = {"1m", "3m", "5m", "15m", "1h"}
 BYBIT_INTERVAL_MAP = {"1m": "1", "3m": "3", "5m": "5", "15m": "15", "1h": "60"}
 OKX_INTERVAL_MAP = {"1m": "1m", "3m": "3m", "5m": "5m", "15m": "15m", "1h": "1H"}
-YAHOO_INTERVAL_MAP = {"1m": "1m", "5m": "5m", "15m": "15m", "1h": "60m"}
-YAHOO_RANGE_MAP = {"1m": "5d", "5m": "5d", "15m": "5d", "1h": "1mo"}
-YAHOO_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125 Safari/537.36",
-    "Accept": "application/json,text/plain,*/*",
-}
 HTTP_TIMEOUT_SECONDS = float(os.getenv("MARKET_HTTP_TIMEOUT", "2.0"))
-XAU_HTTP_TIMEOUT_SECONDS = max(HTTP_TIMEOUT_SECONDS, float(os.getenv("XAU_HTTP_TIMEOUT", "8.0")))
 MARKET_DATA_MODE = os.getenv("MARKET_DATA_MODE", "exchange").lower()
 
 
@@ -49,6 +41,10 @@ def _validate_symbol_interval(symbol: str, interval: str | None = None) -> None:
         raise MarketDataError(f"unsupported symbol: {symbol}")
     if interval is not None and interval not in SUPPORTED_INTERVALS:
         raise MarketDataError(f"unsupported interval: {interval}")
+
+
+def _market_symbol(symbol: str) -> str:
+    return SYMBOL_MARKET_ALIASES.get(symbol, symbol)
 
 
 def _binance_kline_to_dict(row: list[Any]) -> dict[str, float | int]:
@@ -95,29 +91,33 @@ class MarketDataAdapter:
     def get_klines(self, symbol: str, interval: str, limit: int = 200) -> list[dict[str, float | int]]:
         _validate_symbol_interval(symbol, interval)
         limit = max(1, min(limit, 1000))
-        if symbol == "XAUUSD":
-            return self._fetch_xau_klines(interval, limit)
-        if MARKET_DATA_MODE == "mock":
+        if MARKET_DATA_MODE == "mock" and symbol != "XAUUSD":
             return self._mock_klines(symbol, interval, limit)
+
+        exchange_symbol = _market_symbol(symbol)
+        if symbol == "XAUUSD":
+            return self._fetch_xau_exchange_klines(exchange_symbol, interval, limit)
 
         errors: list[str] = []
         for name, fetcher in self._kline_fetchers(interval):
             try:
-                return fetcher(symbol, interval, limit)
+                return fetcher(exchange_symbol, interval, limit)
             except Exception as exc:
                 errors.append(f"{name}: {exc}")
         raise MarketDataError(f"failed to fetch realtime exchange klines ({'; '.join(errors)})")
 
     def get_ticker(self, symbol: str) -> dict[str, float | str]:
         _validate_symbol_interval(symbol)
-        if symbol == "XAUUSD":
-            return self._fetch_xau_ticker()
-        if MARKET_DATA_MODE == "mock":
+        if MARKET_DATA_MODE == "mock" and symbol != "XAUUSD":
             klines = self._mock_klines(symbol, "5m", 288)
             first = float(klines[0]["close"])
             last = float(klines[-1]["close"])
             change = ((last - first) / first) * 100 if first else 0.0
             return {"symbol": symbol, "price": last, "price_change_percent": change}
+
+        exchange_symbol = _market_symbol(symbol)
+        if symbol == "XAUUSD":
+            return self._fetch_xau_exchange_ticker(exchange_symbol)
 
         errors: list[str] = []
         for name, fetcher in [
@@ -126,10 +126,46 @@ class MarketDataAdapter:
             ("okx", self._fetch_okx_ticker),
         ]:
             try:
-                return fetcher(symbol)
+                ticker = fetcher(exchange_symbol)
+                return {**ticker, "symbol": symbol}
             except Exception as exc:
                 errors.append(f"{name}: {exc}")
         raise MarketDataError(f"failed to fetch realtime exchange ticker ({'; '.join(errors)})")
+
+    def _fetch_xau_exchange_ticker(self, exchange_symbol: str) -> dict[str, float | str]:
+        errors: list[str] = []
+        for name, fetcher in [
+            ("okx", self._fetch_okx_ticker),
+            ("binance", self._fetch_binance_ticker),
+            ("bybit", self._fetch_bybit_ticker),
+        ]:
+            try:
+                ticker = fetcher(exchange_symbol)
+                return {**ticker, "symbol": "XAUUSD"}
+            except Exception as exc:
+                errors.append(f"{name}: {exc}")
+        raise MarketDataError(f"failed to fetch realtime xau ticker from PAXGUSDT ({'; '.join(errors)})")
+
+    def _fetch_xau_exchange_klines(self, exchange_symbol: str, interval: str, limit: int) -> list[dict[str, float | int]]:
+        if interval == "10m":
+            fetchers = [
+                ("okx", self._fetch_okx_aggregated_klines),
+                ("binance", self._fetch_binance_aggregated_klines),
+                ("bybit", self._fetch_bybit_aggregated_klines),
+            ]
+        else:
+            fetchers = [
+                ("okx", self._fetch_okx_klines),
+                ("binance", self._fetch_binance_klines),
+                ("bybit", self._fetch_bybit_klines),
+            ]
+        errors: list[str] = []
+        for name, fetcher in fetchers:
+            try:
+                return fetcher(exchange_symbol, interval, limit)
+            except Exception as exc:
+                errors.append(f"{name}: {exc}")
+        raise MarketDataError(f"failed to fetch realtime xau klines from PAXGUSDT ({'; '.join(errors)})")
 
     def get_price_decimal(self, symbol: str) -> Decimal:
         ticker = self.get_ticker(symbol)
@@ -220,74 +256,6 @@ class MarketDataAdapter:
             response.raise_for_status()
             rows = response.json()["data"]
         return sorted((_okx_kline_to_dict(row) for row in rows), key=lambda item: int(item["time"]))
-
-    def _fetch_xau_ticker(self) -> dict[str, float | str]:
-        result = self._fetch_yahoo_chart(YAHOO_INTERVAL_MAP["5m"], "1d")
-        meta = result["meta"]
-        price = float(meta.get("regularMarketPrice") or meta.get("previousClose"))
-        previous_close = float(meta.get("chartPreviousClose") or meta.get("previousClose") or price)
-        change = ((price - previous_close) / previous_close) * 100 if previous_close else 0.0
-        return {"symbol": "XAUUSD", "price": price, "price_change_percent": change}
-
-    def _fetch_xau_klines(self, interval: str, limit: int) -> list[dict[str, float | int]]:
-        if interval in {"3m", "10m"}:
-            source = self._fetch_xau_native_klines("1m")
-            return self._aggregate_klines(source, SUPPORTED_INTERVALS[interval], limit)
-        if interval not in YAHOO_INTERVAL_MAP:
-            raise MarketDataError(f"xau unsupported interval: {interval}")
-        return self._fetch_xau_native_klines(interval)[-limit:]
-
-    def _fetch_xau_native_klines(self, interval: str) -> list[dict[str, float | int]]:
-        result = self._fetch_yahoo_chart(YAHOO_INTERVAL_MAP[interval], YAHOO_RANGE_MAP[interval])
-        timestamps = result.get("timestamp") or []
-        quote = (result.get("indicators", {}).get("quote") or [{}])[0]
-        opens = quote.get("open") or []
-        highs = quote.get("high") or []
-        lows = quote.get("low") or []
-        closes = quote.get("close") or []
-        volumes = quote.get("volume") or []
-        klines: list[dict[str, float | int]] = []
-        for index, timestamp in enumerate(timestamps):
-            open_price = opens[index] if index < len(opens) else None
-            high = highs[index] if index < len(highs) else None
-            low = lows[index] if index < len(lows) else None
-            close = closes[index] if index < len(closes) else None
-            if open_price is None or high is None or low is None or close is None:
-                continue
-            volume = volumes[index] if index < len(volumes) and volumes[index] is not None else 0
-            klines.append(
-                {
-                    "time": int(timestamp),
-                    "open": round(float(open_price), 2),
-                    "high": round(float(high), 2),
-                    "low": round(float(low), 2),
-                    "close": round(float(close), 2),
-                    "volume": float(volume),
-                }
-            )
-        if not klines:
-            raise MarketDataError("xau chart returned no usable candles")
-        return klines
-
-    def _fetch_yahoo_chart(self, interval: str, range_value: str) -> dict[str, Any]:
-        try:
-            with httpx.Client(timeout=XAU_HTTP_TIMEOUT_SECONDS) as client:
-                response = client.get(
-                    f"{YAHOO_CHART_BASE_URL}/{XAU_YAHOO_SYMBOL}",
-                    params={"interval": interval, "range": range_value},
-                    headers=YAHOO_HEADERS,
-                )
-                response.raise_for_status()
-                data = response.json()
-        except httpx.HTTPError as exc:
-            raise MarketDataError(f"xau yahoo chart request failed: {exc}") from exc
-        error = data.get("chart", {}).get("error")
-        if error:
-            raise MarketDataError(f"xau yahoo chart error: {error}")
-        results = data.get("chart", {}).get("result") or []
-        if not results:
-            raise MarketDataError("xau yahoo chart returned no result")
-        return results[0]
 
     def _fetch_binance_aggregated_klines(self, symbol: str, interval: str, limit: int) -> list[dict[str, float | int]]:
         source_limit = min(1000, limit * (SUPPORTED_INTERVALS[interval] // 60) + 5)
