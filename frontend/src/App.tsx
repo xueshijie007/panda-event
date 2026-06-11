@@ -483,6 +483,16 @@ function AccountAccessCard({
             <div className="invite-alert">
               <span>TF 邀请码</span>
               <strong>请使用熊猫社区专属邀请码开户注册</strong>
+              <a
+                className="invite-rebate-link"
+                href="/rebate"
+                onClick={event => {
+                  event.preventDefault();
+                  onNavigate('rebate');
+                }}
+              >
+                查看返佣链接页面
+              </a>
               <p>没有 TF UID 的用户，请先通过开户链接完成注册，再回来填写 UID 提交审核。</p>
             </div>
             <label className="field">
