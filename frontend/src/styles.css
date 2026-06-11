@@ -2133,3 +2133,476 @@ body {
 .simulator-site-header {
   align-items: center;
 }
+
+.mobile-contract-intervals,
+.mobile-amount-row {
+  display: none;
+}
+
+/* Mobile simulator app layout */
+@media (max-width: 680px) {
+  .site-shell.simulator-shell {
+    width: 100%;
+    min-height: 100dvh;
+    padding: 0 0 78px;
+    color: #12161c;
+    background: #fff;
+  }
+
+  .simulator-shell .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid #edf0f3;
+    border-radius: 0;
+    padding: 8px 12px 10px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: none;
+    backdrop-filter: blur(16px);
+  }
+
+  .simulator-shell .brand-mark {
+    width: 100%;
+    justify-content: flex-start;
+    color: #12161c;
+  }
+
+  .simulator-shell .brand-mark span {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    color: #fff;
+    background: #0b9f9a;
+  }
+
+  .simulator-shell .brand-mark strong {
+    font-size: 0.98rem;
+  }
+
+  .simulator-shell .brand-mark em,
+  .simulator-shell .site-nav,
+  .simulator-shell .nav-user-strip .language-switch,
+  .simulator-shell .nav-user-strip .reset-button {
+    display: none;
+  }
+
+  .simulator-shell .site-account {
+    width: 100%;
+  }
+
+  .simulator-shell .nav-user-strip {
+    display: grid;
+    width: 100%;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #edf0f3;
+    border-radius: 18px;
+    padding: 9px 10px;
+    color: #12161c;
+    background: #fff;
+  }
+
+  .simulator-shell .nav-user-strip strong {
+    overflow: hidden;
+    color: #12161c;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .simulator-shell .nav-user-strip .ghost-button {
+    border-color: #edf0f3;
+    color: #7a828b;
+    background: #f6f7f8;
+  }
+
+  .simulator-shell .vip-badge {
+    border: 0;
+    color: #fff;
+    background: #f0a020;
+  }
+
+  .simulator-shell .app-shell {
+    padding: 0;
+  }
+
+  .simulator-shell .main-grid,
+  .simulator-shell .data-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin: 0;
+  }
+
+  .simulator-shell .panel,
+  .simulator-shell .chart-panel,
+  .simulator-shell .order-panel,
+  .simulator-shell .table-panel {
+    border: 0;
+    border-radius: 0;
+    color: #12161c;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .simulator-shell .chart-panel {
+    overflow: visible;
+  }
+
+  .simulator-shell .chart-panel .market-head {
+    padding: 14px 16px 8px;
+    border-bottom: 0;
+  }
+
+  .simulator-shell .chart-panel .eyebrow,
+  .simulator-shell .order-panel .eyebrow,
+  .simulator-shell .table-panel .eyebrow {
+    display: none;
+  }
+
+  .simulator-shell .market-title {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px 12px;
+    align-items: center;
+  }
+
+  .simulator-shell .market-title > span {
+    color: #111418;
+    font-size: 1.55rem;
+    font-weight: 950;
+    letter-spacing: -0.04em;
+  }
+
+  .simulator-shell .market-title > strong {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    color: #dc3545;
+    font-size: 1.75rem;
+    font-weight: 950;
+  }
+
+  .simulator-shell .market-title > small {
+    grid-column: 1;
+    color: #0b9f9a;
+    font-size: 0.98rem;
+  }
+
+  .simulator-shell .market-title .live-tick {
+    display: none;
+  }
+
+  .simulator-shell .chart-panel .switch-row {
+    margin: 0;
+    padding: 6px 10px;
+    gap: 6px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .simulator-shell .chart-panel .switch-row::-webkit-scrollbar,
+  .mobile-contract-intervals::-webkit-scrollbar,
+  .mobile-amount-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .simulator-shell .chart-panel .chip {
+    flex: 0 0 auto;
+    border: 0;
+    color: #8a8f96;
+    background: transparent;
+    padding: 7px 10px;
+    font-size: 1rem;
+  }
+
+  .simulator-shell .chart-panel .chip.active {
+    color: #12161c;
+    background: transparent;
+  }
+
+  .simulator-shell .chart-panel .interval-row {
+    border-bottom: 1px solid #eef0f2;
+    margin-bottom: 0;
+  }
+
+  .simulator-shell .chart-wrap {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+  }
+
+  .simulator-shell .chart-container {
+    height: min(46vh, 390px);
+    min-height: 300px;
+  }
+
+  .simulator-shell .loading-mask {
+    background: rgba(255, 255, 255, 0.76);
+    color: #7a828b;
+  }
+
+  .simulator-shell .refreshing-pill {
+    top: 10px;
+    right: 10px;
+    border-color: #dfe6ee;
+    color: #0b9f9a;
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  .simulator-shell .order-panel {
+    border-top: 10px solid #f7f8fa;
+    padding: 12px 14px 18px;
+  }
+
+  .simulator-shell .order-panel .panel-head,
+  .simulator-shell .order-panel .cycle-field {
+    display: none;
+  }
+
+  .mobile-contract-intervals {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 0 0 10px;
+    scrollbar-width: none;
+  }
+
+  .mobile-contract-intervals .chip,
+  .mobile-amount-row .chip {
+    flex: 1 0 auto;
+    min-width: 72px;
+    border: 1px solid #edf0f3;
+    border-radius: 8px;
+    color: #7d838c;
+    background: #f3f5f7;
+    padding: 10px 12px;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .mobile-contract-intervals .chip.active {
+    border-color: #0b9f9a;
+    color: #fff;
+    background: #0b9f9a;
+  }
+
+  .simulator-shell .order-panel .stake-field {
+    padding: 0;
+  }
+
+  .simulator-shell .order-panel .stake-field span {
+    display: none;
+  }
+
+  .simulator-shell input,
+  .simulator-shell select {
+    border: 1px solid #edf0f3;
+    border-radius: 8px;
+    color: #12161c;
+    background: #f3f5f7;
+    padding: 14px 16px;
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  .simulator-shell .order-panel > .amount-row {
+    display: none;
+  }
+
+  .mobile-amount-row {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px 0 12px;
+    overflow-x: auto;
+  }
+
+  .mobile-amount-row .chip {
+    min-width: 0;
+    background: #fff;
+  }
+
+  .simulator-shell .order-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 0 0 14px;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  .simulator-shell .order-summary div {
+    display: grid;
+    justify-items: start;
+    gap: 4px;
+    border-radius: 12px;
+    padding: 10px;
+    background: #f7f8fa;
+  }
+
+  .simulator-shell .order-summary span {
+    color: #8a8f96;
+    font-size: 0.76rem;
+  }
+
+  .simulator-shell .order-summary strong {
+    color: #12161c;
+    font-size: 0.86rem;
+  }
+
+  .simulator-shell .instant-order-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .simulator-shell .instant-order {
+    min-height: 92px;
+    border: 0;
+    border-radius: 12px;
+    color: #12161c;
+    background: #f3f5f7;
+  }
+
+  .simulator-shell .instant-order.call,
+  .simulator-shell .instant-order.put {
+    border: 0;
+    background: #f3f5f7;
+  }
+
+  .simulator-shell .instant-order.call span {
+    color: #0b9f9a;
+  }
+
+  .simulator-shell .instant-order.put span {
+    color: #dc3545;
+  }
+
+  .simulator-shell .instant-order span {
+    font-size: 1.55rem;
+  }
+
+  .simulator-shell .instant-order strong {
+    color: #111418;
+    font-size: 0.82rem;
+  }
+
+  .simulator-shell .form-error {
+    margin: 0 0 12px;
+    color: #dc3545;
+  }
+
+  .simulator-shell .data-grid {
+    border-top: 10px solid #f7f8fa;
+  }
+
+  .simulator-shell .open-orders-panel,
+  .simulator-shell .history-panel {
+    min-height: auto;
+    max-height: none;
+    border-bottom: 10px solid #f7f8fa;
+  }
+
+  .simulator-shell .table-panel .panel-head {
+    padding: 16px 14px 8px;
+  }
+
+  .simulator-shell .table-panel h2 {
+    color: #12161c;
+    font-size: 1.18rem;
+  }
+
+  .simulator-shell .open-order-scroll {
+    max-height: none;
+    overflow: visible;
+    gap: 10px;
+    padding: 8px 14px 16px;
+  }
+
+  .simulator-shell .open-order-card {
+    border-color: #edf0f3;
+    border-radius: 14px;
+    color: #12161c;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(18, 22, 28, 0.06);
+  }
+
+  .simulator-shell .open-order-meta,
+  .simulator-shell .open-order-prices div {
+    background: #f7f8fa;
+  }
+
+  .simulator-shell .open-order-prices {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .simulator-shell .open-order-prices dt,
+  .simulator-shell .open-order-expiry span,
+  .simulator-shell th {
+    color: #8a8f96;
+  }
+
+  .simulator-shell .history-filter-row {
+    padding: 0 14px 10px;
+  }
+
+  .simulator-shell .history-filter-row .chip {
+    border: 0;
+    color: #8a8f96;
+    background: transparent;
+    padding: 8px 4px;
+    font-size: 1rem;
+  }
+
+  .simulator-shell .history-filter-row .chip.active {
+    border-bottom: 4px solid #0b9f9a;
+    border-radius: 0;
+    color: #12161c;
+    background: transparent;
+  }
+
+  .simulator-shell .table-scroll {
+    padding: 0 14px 16px;
+  }
+
+  .simulator-shell table {
+    min-width: 760px;
+  }
+
+  .simulator-shell .table-panel thead th {
+    background: #fff;
+  }
+
+  .simulator-shell th,
+  .simulator-shell td {
+    border-bottom-color: #edf0f3;
+  }
+
+  .simulator-shell .stats-grid {
+    display: none;
+  }
+
+  .simulator-shell .site-footer {
+    color: #8a8f96;
+    background: #fff;
+  }
+
+  .simulator-shell .error-banner {
+    margin: 10px 12px;
+    border-color: rgba(220, 53, 69, 0.18);
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.06);
+  }
+}

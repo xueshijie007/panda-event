@@ -99,9 +99,29 @@ export function ChartPanel({ symbol, interval, ticker, klines, openOrders, loadi
       wickDownColor: '#ff5c7a',
     });
 
+    function applyResponsiveChartFrame(width: number, height: number) {
+      const isMobile = width <= 680;
+      chart.applyOptions({
+        width,
+        height,
+        layout: {
+          background: { color: isMobile ? '#ffffff' : '#10151f' },
+          textColor: isMobile ? '#626a73' : '#c8d3e1',
+        },
+        grid: {
+          vertLines: { color: isMobile ? 'rgba(18, 24, 32, 0.08)' : 'rgba(142, 157, 179, 0.08)' },
+          horzLines: { color: isMobile ? 'rgba(18, 24, 32, 0.08)' : 'rgba(142, 157, 179, 0.08)' },
+        },
+        rightPriceScale: { borderColor: isMobile ? 'rgba(18, 24, 32, 0.12)' : 'rgba(142, 157, 179, 0.2)' },
+        timeScale: { borderColor: isMobile ? 'rgba(18, 24, 32, 0.12)' : 'rgba(142, 157, 179, 0.2)' },
+      });
+    }
+
     const observer = new ResizeObserver(entries => {
-      const width = entries[0]?.contentRect.width;
-      if (width) chart.applyOptions({ width });
+      const rect = entries[0]?.contentRect;
+      if (rect?.width) {
+        applyResponsiveChartFrame(rect.width, rect.height || 430);
+      }
     });
     observer.observe(containerRef.current);
 
