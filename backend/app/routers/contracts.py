@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas import ContractOrderOut, OpenContractRequest, StatsOut, UserOut
-from app.services.contract_service import get_stats, list_history_orders, list_open_orders, open_contract, reset_account
+from app.services.contract_service import get_stats, list_history_orders, list_open_orders, open_contract, request_reset_account
 from app.services.settlement_service import settle_due_orders
 
 router = APIRouter()
@@ -41,7 +41,7 @@ def get_contract_stats(user_id: int = Depends(current_user_id), db: Session = De
 
 @router.post("/reset", response_model=UserOut)
 def reset_simulator_account(user_id: int = Depends(current_user_id), db: Session = Depends(get_db)):
-    return reset_account(db, user_id)
+    return request_reset_account(db, user_id)
 
 
 @router.post("/settle/manual")

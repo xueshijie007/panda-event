@@ -741,12 +741,27 @@ td { font-size: 0.9rem; }
 .status-draw { background: rgba(246, 199, 111, 0.14); color: var(--gold); }
 .status-cancelled { background: rgba(141, 155, 176, 0.14); color: var(--muted); }
 
+.notice-banner,
 .error-banner {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+}
+.notice-banner {
+  padding: 12px 14px;
+  border: 1px solid rgba(88, 240, 168, 0.35);
+  border-radius: 16px;
+  background: rgba(88, 240, 168, 0.1);
+  color: var(--green);
+}
+.notice-banner button {
+  border: none;
+  color: var(--text);
+  background: transparent;
+}
+.error-banner {
   padding: 12px 14px;
   border: 1px solid rgba(255, 92, 122, 0.35);
   border-radius: 16px;
@@ -1267,9 +1282,14 @@ body {
   color: var(--red);
   background: rgba(255, 92, 122, 0.12);
 }
+.review-badge.none {
+  color: var(--muted);
+  background: rgba(141, 155, 176, 0.12);
+}
 .review-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .chip.danger {
   border-color: rgba(255, 92, 122, 0.35);
@@ -1356,6 +1376,10 @@ body {
   border-color: rgba(244, 199, 101, 0.35);
   color: var(--gold);
   background: rgba(244, 199, 101, 0.08);
+}
+.reset-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
 }
 
 /* Simulator rule update layer */

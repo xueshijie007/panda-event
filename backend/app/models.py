@@ -31,7 +31,10 @@ class User(Base):
     exchange_uid: Mapped[str | None] = mapped_column(String(128), nullable=True)
     review_status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
     reviewed_at = mapped_column(DateTime(timezone=True), nullable=True)
-    balance: Mapped[Decimal] = mapped_column(Numeric(18, 8), nullable=False, default=Decimal("10000.00"))
+    balance: Mapped[Decimal] = mapped_column(Numeric(18, 8), nullable=False, default=Decimal("1000.00"))
+    reset_review_status: Mapped[str] = mapped_column(String(20), nullable=False, default="none")
+    reset_requested_at = mapped_column(DateTime(timezone=True), nullable=True)
+    reset_reviewed_at = mapped_column(DateTime(timezone=True), nullable=True)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     orders: Mapped[list["EventContractOrder"]] = relationship(back_populates="user")

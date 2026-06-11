@@ -12,9 +12,12 @@ export interface User {
   contact_account: string | null;
   exchange_uid: string | null;
   review_status: 'pending' | 'approved' | 'rejected';
+  reset_review_status: 'none' | 'pending' | 'approved' | 'rejected';
   balance: number;
   created_at: string;
   reviewed_at: string | null;
+  reset_requested_at: string | null;
+  reset_reviewed_at: string | null;
 }
 
 export interface ReviewStatus {

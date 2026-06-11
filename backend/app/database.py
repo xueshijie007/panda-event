@@ -34,6 +34,9 @@ def ensure_user_profile_columns() -> None:
         "exchange_uid": "VARCHAR(128)",
         "review_status": "VARCHAR(20) DEFAULT 'approved' NOT NULL",
         "reviewed_at": "DATETIME",
+        "reset_review_status": "VARCHAR(20) DEFAULT 'none' NOT NULL",
+        "reset_requested_at": "DATETIME",
+        "reset_reviewed_at": "DATETIME",
     }
     missing_columns = [(name, column_type) for name, column_type in columns.items() if name not in existing_columns]
     if not missing_columns:

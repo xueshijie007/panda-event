@@ -22,7 +22,7 @@ PAYOUT_RATIOS = {
     "1h": Decimal("0.75"),
 }
 MONEY_QUANT = Decimal("0.00000001")
-DEFAULT_VIRTUAL_BALANCE = Decimal("10000.00")
+DEFAULT_VIRTUAL_BALANCE = Decimal("1000.00")
 
 
 def quantize_money(value: Decimal) -> Decimal:
@@ -132,10 +132,26 @@ def get_stats(db: Session, user_id: int) -> dict[str, int | float]:
     }
 
 
+def request_reset_account(db: Session, user_id: int) -> User:
+    user = get_user_or_404(db, user_id)
+    if user.review_status != "approved":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="VIP access is not approved yet")
+    if user.reset_review_status == "pending":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="reset request is already pending review")
+    user.reset_review_status = "pending"
+    user.reset_requested_at = datetime.now(timezone.utc)
+    user.reset_reviewed_at = None
+    db.commit()
+    db.refresh(user)
+    return user
+
+
 def reset_account(db: Session, user_id: int) -> User:
     user = get_user_or_404(db, user_id)
     db.execute(delete(EventContractOrder).where(EventContractOrder.user_id == user_id))
     user.balance = DEFAULT_VIRTUAL_BALANCE
+    user.reset_review_status = "approved"
+    user.reset_reviewed_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(user)
     return user

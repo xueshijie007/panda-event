@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
 from app.schemas import AdminLoginOut, AdminLoginRequest, AdminUserOut
+from app.services.contract_service import reset_account
 
 router = APIRouter()
 
@@ -35,7 +36,9 @@ def admin_login(payload: AdminLoginRequest) -> dict[str, str]:
 @router.get("/users", response_model=list[AdminUserOut], dependencies=[Depends(require_admin)])
 def list_users(status_filter: str = "pending", db: Session = Depends(get_db)) -> list[User]:
     query = select(User).order_by(User.created_at.desc())
-    if status_filter != "all":
+    if status_filter == "reset_pending":
+        query = query.where(User.reset_review_status == "pending")
+    elif status_filter != "all":
         query = query.where(User.review_status == status_filter)
     return list(db.scalars(query))
 
@@ -59,6 +62,30 @@ def reject_user(user_id: int, db: Session = Depends(get_db)) -> User:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
     user.review_status = "rejected"
     user.reviewed_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.post("/users/{user_id}/reset/approve", response_model=AdminUserOut, dependencies=[Depends(require_admin)])
+def approve_reset_user(user_id: int, db: Session = Depends(get_db)) -> User:
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+    if user.reset_review_status != "pending":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="no pending reset request")
+    return reset_account(db, user_id)
+
+
+@router.post("/users/{user_id}/reset/reject", response_model=AdminUserOut, dependencies=[Depends(require_admin)])
+def reject_reset_user(user_id: int, db: Session = Depends(get_db)) -> User:
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+    if user.reset_review_status != "pending":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="no pending reset request")
+    user.reset_review_status = "rejected"
+    user.reset_reviewed_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(user)
     return user

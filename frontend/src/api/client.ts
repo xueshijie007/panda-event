@@ -78,6 +78,12 @@ export const api = {
   rejectUser(token: string, userId: number) {
     return adminRequest<User>(`/api/admin/users/${userId}/reject`, token, { method: 'POST' });
   },
+  approveReset(token: string, userId: number) {
+    return adminRequest<User>(`/api/admin/users/${userId}/reset/approve`, token, { method: 'POST' });
+  },
+  rejectReset(token: string, userId: number) {
+    return adminRequest<User>(`/api/admin/users/${userId}/reset/reject`, token, { method: 'POST' });
+  },
   getMe(userId: number) {
     return request<User>(`/api/users/me?user_id=${userId}`);
   },

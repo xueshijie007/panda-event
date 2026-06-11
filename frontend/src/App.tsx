@@ -40,7 +40,7 @@ const pageByPath = new Map(navPages.map(page => [page.path, page]));
 const featureCards = [
   { badge: '01', title: '注册熊猫社区账户', text: '填写账户、密码、微信/QQ 和交易所 UID，建立活动与返佣识别身份。', target: 'register' as PageKey },
   { badge: '02', title: '领取交易所返佣', text: 'WEEX、Gate、Deepcoin、TurboFlow 注册链接、邀请码和返佣比例集中展示。', target: 'rebate' as PageKey },
-  { badge: '03', title: '进入事件模拟盘', text: '用 10,000 虚拟 USDT 练习 BTC/ETH 事件合约，先练规则再实盘。', target: 'simulator' as PageKey },
+  { badge: '03', title: '进入事件模拟盘', text: '用 1,000 虚拟 USDT 练习 BTC/ETH 事件合约，先练规则再实盘。', target: 'simulator' as PageKey },
   { badge: '04', title: '学习做单框架', text: '学习周期、方向、入场条件、仓位控制和复盘模板，降低盲目下单。', target: 'teaching' as PageKey },
 ];
 
@@ -254,7 +254,7 @@ function HomePage({ onNavigate }: { onNavigate: (page: PageKey) => void }) {
           <div className="hero-steps" aria-label="推荐流程">
             <div><span>01</span><strong>注册账户</strong><p>绑定联系方式和交易所 UID</p></div>
             <div><span>02</span><strong>领取返佣</strong><p>查看平台链接与邀请码</p></div>
-            <div><span>03</span><strong>模拟练习</strong><p>使用 10,000 虚拟 USDT</p></div>
+            <div><span>03</span><strong>模拟练习</strong><p>使用 1,000 虚拟 USDT</p></div>
             <div><span>04</span><strong>参与活动</strong><p>查看基金、周活动和战绩</p></div>
           </div>
         </div>
@@ -563,7 +563,7 @@ function AccountAccessCard({
           <p className="eyebrow">What You Get</p>
           <h2>审核通过后开通 VIP 权限</h2>
           <ul>
-            <li>10,000 虚拟 USDT 初始余额</li>
+            <li>1,000 虚拟 USDT 初始余额</li>
             <li>登录账号统一使用 QQ 号</li>
             <li>BTCUSDT / ETHUSDT / XAUUSD 模拟事件合约</li>
             <li>未结算订单、历史订单和胜率统计</li>
@@ -626,6 +626,20 @@ function AdminPage({ onLogout }: { onLogout: () => void }) {
     }
   }
 
+  async function reviewReset(userId: number, action: 'approve' | 'reject') {
+    setAdminError(null);
+    try {
+      if (action === 'approve') {
+        await api.approveReset(token, userId);
+      } else {
+        await api.rejectReset(token, userId);
+      }
+      await loadUsers();
+    } catch (err) {
+      setAdminError(err instanceof Error ? err.message : '重置审核操作失败');
+    }
+  }
+
   if (!token) {
     return (
       <section className="admin-shell">
@@ -647,8 +661,8 @@ function AdminPage({ onLogout }: { onLogout: () => void }) {
       <div className="admin-top">
         <div>
           <p className="eyebrow">Admin Review</p>
-          <h1>用户注册审核</h1>
-          <p className="muted">这里可以查看用户提交的 QQ 号和 TF UID，并决定是否开通 VIP 模拟盘权限。</p>
+          <h1>用户审核后台</h1>
+          <p className="muted">这里可以审核 VIP 注册，也可以处理用户提交的模拟盘重置申请。</p>
         </div>
         <div className="admin-actions">
           <select value={statusFilter} onChange={event => {
@@ -658,6 +672,7 @@ function AdminPage({ onLogout }: { onLogout: () => void }) {
             <option value="pending">待审核</option>
             <option value="approved">已通过</option>
             <option value="rejected">已拒绝</option>
+            <option value="reset_pending">重置待审核</option>
             <option value="all">全部</option>
           </select>
           <button className="ghost-button" type="button" onClick={() => loadUsers()}>刷新</button>
@@ -678,23 +693,33 @@ function AdminPage({ onLogout }: { onLogout: () => void }) {
               <th>联系方式</th>
               <th>TF UID</th>
               <th>状态</th>
+              <th>重置状态</th>
+              <th>重置申请时间</th>
               <th>注册时间</th>
               <th>操作</th>
             </tr>
           </thead>
           <tbody>
-            {users.length === 0 && <tr><td className="empty-cell" colSpan={6}>{loading ? '加载中...' : '暂无用户'}</td></tr>}
+            {users.length === 0 && <tr><td className="empty-cell" colSpan={8}>{loading ? '加载中...' : '暂无用户'}</td></tr>}
             {users.map(item => (
               <tr key={item.id}>
                 <td>{item.username}</td>
                 <td>QQ · {item.contact_account}</td>
                 <td>{item.exchange_uid}</td>
                 <td><span className={`review-badge ${item.review_status}`}>{item.review_status}</span></td>
+                <td><span className={`review-badge ${item.reset_review_status}`}>{item.reset_review_status}</span></td>
+                <td>{item.reset_requested_at ? new Date(item.reset_requested_at).toLocaleString() : '--'}</td>
                 <td>{new Date(item.created_at).toLocaleString()}</td>
                 <td>
                   <div className="review-actions">
                     <button className="chip active" type="button" onClick={() => reviewUser(item.id, 'approve')}>通过</button>
                     <button className="chip danger" type="button" onClick={() => reviewUser(item.id, 'reject')}>拒绝</button>
+                    {item.reset_review_status === 'pending' && (
+                      <>
+                        <button className="chip active" type="button" onClick={() => reviewReset(item.id, 'approve')}>通过重置</button>
+                        <button className="chip danger" type="button" onClick={() => reviewReset(item.id, 'reject')}>拒绝重置</button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -753,6 +778,7 @@ function App() {
   const [accountLoading, setAccountLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [registerNotice, setRegisterNotice] = useState<string | null>(null);
   const [reviewStatus, setReviewStatus] = useState<ReviewStatus | null>(null);
   const [reviewChecking, setReviewChecking] = useState(false);
@@ -952,18 +978,16 @@ function App() {
 
   async function handleResetAccount() {
     if (!user) return;
-    const confirmed = window.confirm('确认重置模拟盘资产？余额会恢复为 10,000 虚拟 USDT，并清空你的模拟订单记录。');
+    const confirmed = window.confirm('确认提交模拟盘重置审核？管理员通过后，余额会恢复为 1,000 虚拟 USDT，并清空你的模拟订单记录。');
     if (!confirmed) return;
     setError(null);
+    setNotice(null);
     try {
       const nextUser = await api.resetAccount(user.id);
       setUser(nextUser);
-      setOpenOrders([]);
-      setHistoryOrders([]);
-      setStats(null);
-      await loadAccount(nextUser.id);
+      setNotice('重置申请已提交，请等待管理员审核。');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '重置资产失败');
+      setError(err instanceof Error ? err.message : '提交重置审核失败');
     }
   }
 
@@ -991,7 +1015,9 @@ function App() {
       <span>{user.username}</span>
       <span className="vip-badge">VIP权限</span>
       <strong>{formatMoney(Number(user.balance))} USDT</strong>
-      <button className="ghost-button reset-button" onClick={handleResetAccount}>重置资产</button>
+      <button className="ghost-button reset-button" onClick={handleResetAccount} disabled={user.reset_review_status === 'pending'}>
+        {user.reset_review_status === 'pending' ? '重置审核中' : '申请重置'}
+      </button>
       <button className="ghost-button" onClick={logout}>{t.logout}</button>
     </div>
   ) : null;
@@ -1105,6 +1131,7 @@ function App() {
         simulatorAccountControls={simulatorAccountControls}
       />
       <section className="app-shell">
+        {notice && <div className="notice-banner"><span>{notice}</span><button onClick={() => setNotice(null)}>{t.dismiss}</button></div>}
         {error && <div className="error-banner"><span>{error}</span><button onClick={() => setError(null)}>{t.dismiss}</button></div>}
         {settlementNotice && (
           <div className="settlement-modal-backdrop" role="dialog" aria-modal="true">

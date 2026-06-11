@@ -48,9 +48,12 @@ class UserOut(BaseModel):
     contact_account: str | None = None
     exchange_uid: str | None = None
     review_status: str
+    reset_review_status: str
     balance: Decimal
     created_at: datetime
     reviewed_at: datetime | None = None
+    reset_requested_at: datetime | None = None
+    reset_reviewed_at: datetime | None = None
 
 
 class UserReviewStatusOut(BaseModel):
