@@ -565,7 +565,7 @@ function AccountAccessCard({
           <ul>
             <li>10,000 虚拟 USDT 初始余额</li>
             <li>登录账号统一使用 QQ 号</li>
-            <li>BTCUSDT / ETHUSDT 模拟事件合约</li>
+            <li>BTCUSDT / ETHUSDT / XAUUSD 模拟事件合约</li>
             <li>未结算订单、历史订单和胜率统计</li>
             <li>无真实充值、提现或真实交易风险</li>
             <li>联系小助理 QQ 2821305247 可协助快速审核</li>

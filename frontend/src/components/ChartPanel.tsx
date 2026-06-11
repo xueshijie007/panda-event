@@ -16,9 +16,14 @@ interface ChartPanelProps {
   onIntervalChange: (interval: ChartInterval) => void;
 }
 
-const symbols: SymbolName[] = ['BTCUSDT', 'ETHUSDT'];
+const symbols: SymbolName[] = ['BTCUSDT', 'ETHUSDT', 'XAUUSD'];
 const intervals: ChartInterval[] = ['1m', '3m', '5m', '10m', '15m', '1h'];
 const chartTimeZone = 'Asia/Shanghai';
+
+function formatSymbolLabel(symbol: SymbolName): string {
+  if (symbol === 'XAUUSD') return 'XAU/USD';
+  return symbol.replace('USDT', '');
+}
 
 function timeToDate(time: Time): Date {
   if (typeof time === 'number') return new Date(time * 1000);
@@ -207,7 +212,7 @@ export function ChartPanel({ symbol, interval, ticker, klines, openOrders, loadi
         <div>
           <p className="eyebrow">{t.market}</p>
           <h2 className="market-title">
-            <span>{symbol}</span>
+            <span>{symbol === 'XAUUSD' ? 'XAU/USD' : symbol}</span>
             <strong>{displayTicker ? formatPrice(displayTicker.price) : '--'}</strong>
             <small className={positive ? 'positive' : 'negative'}>{positive ? '+' : ''}{change.toFixed(2)}%</small>
             <em className="live-tick">LIVE</em>
@@ -218,7 +223,7 @@ export function ChartPanel({ symbol, interval, ticker, klines, openOrders, loadi
       <div className="switch-row">
         {symbols.map(item => (
           <button key={item} className={item === symbol ? 'chip active' : 'chip'} onClick={() => onSymbolChange(item)}>
-            {item.replace('USDT', '')}
+            {formatSymbolLabel(item)}
           </button>
         ))}
       </div>

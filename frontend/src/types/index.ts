@@ -1,4 +1,4 @@
-﻿export type SymbolName = 'BTCUSDT' | 'ETHUSDT';
+export type SymbolName = 'BTCUSDT' | 'ETHUSDT' | 'XAUUSD';
 export type ChartInterval = '1m' | '3m' | '5m' | '10m' | '15m' | '1h';
 export type ContractInterval = '1m' | '3m' | '5m' | '10m' | '15m' | '1h';
 export type Interval = ChartInterval;

@@ -89,7 +89,7 @@ class TickerOut(BaseModel):
 
 
 class OpenContractRequest(BaseModel):
-    symbol: Literal["BTCUSDT", "ETHUSDT"]
+    symbol: Literal["BTCUSDT", "ETHUSDT", "XAUUSD"]
     interval: Literal["1m", "3m", "5m", "10m", "15m", "1h"]
     direction: Literal["CALL", "PUT"]
     stake_amount: Decimal = Field(gt=Decimal("0"))
